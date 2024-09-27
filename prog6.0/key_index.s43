@@ -1,0 +1,526 @@
+;***********************************************
+;KEY-index REG
+;***********************************************
+
+
+;***************************************************
+;按KEY 反白 0:第一行 3:第4行 游標
+;****************************************************
+
+KEY_INDEX:
+            MOV       #PATTERNTABLE,R4
+            MOV.B     PATTERN,R5
+            ;dec       R5                      ;PATTERN是0開始
+            RLA       R5
+            RLA       R5
+            ADD       R5,R4        
+            BR        R4
+ 
+PATTERNTABLE
+           mov        #SELECT_BATT_GENERATOR_brake,pc
+           mov        #cca_en_iec_din,pc
+           mov        #CCA_INDEX,pc
+           mov        #EN_INDEX,pc           
+           mov        #DIN_INDEX,pc
+           mov        #IEC_INDEX,pc
+           mov        #JIS1_INDEX,pc
+           mov        #JIS2_INDEX,pc  
+           mov        #LANGUE_SEL,pc
+           mov        #VOLTAGE_12V_24V_SEL,pc
+           mov        #VRAI_AGM_SEL,pc              
+           
+           ;jmp       SELECT_BATT_GENERATOR_brake
+           ;jmp       cca_en_iec_din
+           ;jmp       CCA_INDEX
+           ;jmp       EN_INDEX
+           ;jmp       DIN_INDEX
+           ;jmp       IEC_INDEX
+          ; jmp       JIS1_INDEX
+           ;jmp       JIS2_INDEX
+           ;jmp       LANGUE_SEL
+           ;jmp       VOLTAGE_12V_24V_SEL
+           ;jmp       VRAI_AGM_SEL
+
+           ;mov       #disbrakefluid_SEL,pc                    
+  
+;*****************************
+;       CMP.B       #0,PATTERN
+;***************************
+SELECT_BATT_GENERATOR_brake	
+KS3a		CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             KS4a
+		INC.B		KEY_VAL1		;第幾行反白的值加1
+                CMP.B		#4,KEY_VAL1             ;(0-3)行,比較是否=4
+                JNE             KS0a                     ;不相等就JMP KS0
+		MOV.B		#1,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS0a
+		RET
+KS1a	
+
+		
+KS4a	        CMP.B		#UP,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JNE             KS5a                     ;不相等就JMP KS2
+                DEC.B		KEY_VAL1	        ;第幾行反白的值減1
+                CMP.B		#00h,KEY_VAL1          ;(0-3)行,比較是否=255
+                JNE             KS2a                     ;不相等就JMP KS2
+                MOV.B		#3,KEY_VAL1             ;=255,就把KEY_VAL1,改成3		
+KS2a
+		RET
+
+;-----------------------------------------------------------------------		
+		
+KS5a	       ; CMP.B		#RIGHT,KEY_VAL	        ;比較是否按下1sec向上鍵
+               ; JEQ             KS6a                     ;不相等就JMP KS2
+                ;CMP.B		#LEFT,KEY_VAL	        ;比較是否按下1sec向上鍵
+                ;JEQ             KS6a
+               ; RET
+KS6a
+                ;CMP.B           #4,KEY_VAL1
+               ; JGE             KS7a
+                ;ADD.B		#3,KEY_VAL1	        ;第幾行反白的值減1
+                ;CMP.B		#5,KEY_VAL1             ;(0-3)行,比較是否=4
+                ;JL              KS8a                    ;不相等就JMP KS0
+                ;SUB.B		#3,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS8a
+                RET
+
+KS7a            SUB.B           #3,KEY_VAL1             ;不相等就JMP KS2	
+
+		RET	
+                
+;*********************************
+;      CMP.B       #1,PATTERN         
+;*******************************
+cca_en_iec_din
+
+;		MOV.B		KEY_VAL,KEY_VAL1	;KEY VAL
+;		CJNE		A,#23,KS3		;比較是否按下1sec向下鍵,是就執行下一行,否則就跳到 ks3 執行
+;		INC		KEY_VAL1		;第幾行反白的值加1
+;		MOV		A,KEY_VAL1		;第幾行反白的值
+;		CJNE		A,#4,KS0		;(0-3)行,比較是否=4
+;		MOV		KEY_VAL1,#0		;=4,就把KEY_VAL1,改成0
+
+KS3:		CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             KS1
+		INC.B		KEY_VAL1		;第幾行反白的值加1
+                CMP.B		#7,KEY_VAL1             ;(0-3)行,比較是否=4
+                JNE             KS0                     ;不相等就JMP KS0
+		MOV.B		#1,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS0:
+		RET
+
+
+KS1:	
+;		CJNE		A,#27,KS4		;比較是否按下1sec向上鍵
+;		DEC		KEY_VAL1		;第幾行反白的值減1
+;		MOV		A,KEY_VAL1		;第幾行反白的值
+;		CJNE		A,#0FFH,KS2		;(0-3)行,比較是否=255
+;		MOV		KEY_VAL1,#3		;=255,就把KEY_VAL1,改成3
+		
+		
+ks4:	        CMP.B		#UP,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JNE             KS5                     ;不相等就JMP KS2
+                DEC.B		KEY_VAL1	        ;第幾行反白的值減1
+                CMP.B		#00h,KEY_VAL1          ;(0-3)行,比較是否=255
+                JNE             KS2                     ;不相等就JMP KS2
+                MOV.B		#6,KEY_VAL1             ;=255,就把KEY_VAL1,改成3		
+KS2:
+		RET
+;-----------------------------------------------------------------------		
+		
+KS5:	        CMP.B		#RIGHT,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JEQ             KS6                     ;不相等就JMP KS2
+                CMP.B		#LEFT,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JEQ             KS6
+                RET
+KS6:
+                CMP.B           #4,KEY_VAL1
+                JGE             KS7
+                ADD.B		#3,KEY_VAL1	        ;第幾行反白的值減1
+                RET
+
+KS7:            SUB.B           #3,KEY_VAL1             ;不相等就JMP KS2	
+
+		RET
+                
+;******************************************************************************	
+;       CMP.B       #2,PATTERN
+;*******************************	
+CCA_INDEX
+
+CCS0        	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             CCS2
+                SUB             #5,CCA_KEY_VAL
+                CMP		#100,CCA_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              CCS1                     ;不相等就JMP KS0
+		MOV		#100,CCA_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+CCS1		RET
+
+		
+CCS2            CMP.B		#UP,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             CCS4                       ;不相等就JMP KS2
+                ADD		#5,CCA_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#2200,CCA_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              CCS3                       ;不相等就JMP KS2
+                MOV		#2200,CCA_KEY_VAL             ;=255,就把KEY_VAL1,改成3		
+
+CCS3		RET
+
+;-------------------------------------------------------------------------------
+CCS4        	CMP.B		#LEFT,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             CCS6
+                SUB             #100,CCA_KEY_VAL
+                CMP		#100,CCA_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              CCS5                     ;不相等就JMP KS0
+		MOV		#100,CCA_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+CCS5		RET
+
+
+		
+		
+CCS6            CMP.B		#RIGHT,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             CCS7                       ;不相等就JMP KS2
+                ADD		#100,CCA_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#2200,CCA_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              CCS7                       ;不相等就JMP KS2
+                MOV		#2200,CCA_KEY_VAL             ;=255,就把KEY_VAL1,改成3
+
+CCS7		RET
+
+;******************************************************************************
+;     CMP.B       #3,PATTERN  
+;****************************		
+EN_INDEX
+
+EN0        	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             EN2
+                SUB             #5,EN_KEY_VAL
+                CMP		#100,EN_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              EN1                     ;不相等就JMP KS0
+		MOV		#100,EN_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+EN1		RET
+
+		
+		
+EN2            CMP.B		#UP,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             EN4                       ;不相等就JMP KS2
+                ADD		#5,EN_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#1700,EN_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              EN3                       ;不相等就JMP KS2
+                MOV		#1700,EN_KEY_VAL             ;=255,就把KEY_VAL1,改成3		
+
+EN3		RET
+
+;-------------------------------------------------------------------------------
+EN4        	CMP.B		#LEFT,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             EN6
+                SUB             #100,EN_KEY_VAL
+                CMP		#100,EN_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              EN5                     ;不相等就JMP KS0
+		MOV		#100,EN_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+EN5		RET
+		
+		
+EN6            CMP.B		#RIGHT,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             EN7                       ;不相等就JMP KS2
+                ADD		#100,EN_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#1700,EN_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              EN7                       ;不相等就JMP KS2
+                MOV		#1700,EN_KEY_VAL             ;=255,就把KEY_VAL1,改成3
+
+EN7		RET
+
+;******************************************************************************
+;       CMP.B       #4,PATTERN
+;*******************************		
+DIN_INDEX
+
+DIN0        	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             DIN2
+                SUB             #5,DIN_KEY_VAL
+                CMP		#100,DIN_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              DIN1                     ;不相等就JMP KS0
+		MOV		#100,DIN_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+DIN1		RET
+		
+		
+DIN2            CMP.B		#UP,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             DIN4                       ;不相等就JMP KS2
+                ADD		#5,DIN_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#1000,DIN_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              DIN3                       ;不相等就JMP KS2
+                MOV		#1000,DIN_KEY_VAL             ;=255,就把KEY_VAL1,改成3		
+
+DIN3		RET
+
+;-------------------------------------------------------------------------------
+DIN4        	CMP.B		#LEFT,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             DIN6
+                SUB             #100,DIN_KEY_VAL
+                CMP		#100,DIN_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              DIN5                     ;不相等就JMP KS0
+		MOV		#100,DIN_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+DIN5		RET
+		
+		
+DIN6            CMP.B		#RIGHT,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             DIN7                       ;不相等就JMP KS2
+                ADD		#100,DIN_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#1000,DIN_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              DIN7                       ;不相等就JMP KS2
+                MOV		#1000,DIN_KEY_VAL             ;=255,就把KEY_VAL1,改成3
+
+DIN7		RET
+
+;******************************************************************************
+;       CMP.B       #5,PATTERN
+;**********************************		
+IEC_INDEX
+
+IEC0        	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             IEC2
+                SUB             #5,IEC_KEY_VAL
+                CMP		#100,IEC_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              IEC1                     ;不相等就JMP KS0
+		MOV		#100,IEC_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+IEC1		RET
+		
+		
+IEC2            CMP.B		#UP,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             IEC4                       ;不相等就JMP KS2
+                ADD		#5,IEC_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#1000,IEC_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              IEC3                       ;不相等就JMP KS2
+                MOV		#1000,IEC_KEY_VAL             ;=255,就把KEY_VAL1,改成3		
+
+IEC3		RET
+
+;-------------------------------------------------------------------------------
+IEC4        	CMP.B		#LEFT,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             IEC6
+                SUB             #100,IEC_KEY_VAL
+                CMP		#100,IEC_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              IEC5                     ;不相等就JMP KS0
+		MOV		#100,IEC_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+IEC5		RET
+		
+		
+IEC6            CMP.B		#RIGHT,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             IEC7                       ;不相等就JMP KS2
+                ADD		#100,IEC_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#1000,IEC_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              IEC7                       ;不相等就JMP KS2
+                MOV		#1000,IEC_KEY_VAL             ;=255,就把KEY_VAL1,改成3
+
+IEC7		RET
+
+;******************************************************************************
+;       CMP.B       #6,PATTERN
+;***************************	
+JIS1_INDEX
+
+JIS10        	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             JIS12
+                SUB             #1,JIS1_KEY_VAL
+                CMP		#1,JIS1_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              JIS11                     ;不相等就JMP KS0
+		MOV		#1,JIS1_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+JIS11		RET
+		
+		
+JIS12            CMP.B		#UP,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             JIS14                       ;不相等就JMP KS2
+                ADD		#1,JIS1_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#60,JIS1_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              JIS13                       ;不相等就JMP KS2
+                MOV		#60,JIS1_KEY_VAL             ;=255,就把KEY_VAL1,改成3		
+
+JIS13		RET
+
+;-------------------------------------------------------------------------------
+JIS14        	CMP.B		#LEFT,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             JIS16
+                SUB             #1,JIS1_KEY_VAL
+                CMP		#1,JIS1_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              JIS15                     ;不相等就JMP KS0
+		MOV		#1,JIS1_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+JIS15		RET
+		
+		
+JIS16            CMP.B		#RIGHT,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             JIS17                       ;不相等就JMP KS2
+                ADD		#1,JIS1_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#60,JIS1_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              JIS17                       ;不相等就JMP KS2
+                MOV		#60,JIS1_KEY_VAL             ;=255,就把KEY_VAL1,改成3
+
+JIS17		RET
+
+;******************************************************************************	
+;       CMP.B       #7,PATTERN
+;************************	
+JIS2_INDEX
+
+JIS20        	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             JIS22
+                SUB             #1,JIS2_KEY_VAL
+                CMP		#1,JIS2_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              JIS21                     ;不相等就JMP KS0
+		MOV		#1,JIS2_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+JIS21		RET
+		
+		
+JIS22            CMP.B		#UP,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             JIS24                       ;不相等就JMP KS2
+                ADD		#1,JIS2_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#50,JIS2_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              JIS23                       ;不相等就JMP KS2
+                MOV		#50,JIS2_KEY_VAL             ;=255,就把KEY_VAL1,改成3		
+
+JIS23		RET
+
+;-------------------------------------------------------------------------------
+JIS24        	CMP.B		#LEFT,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             JIS26
+                SUB             #1,JIS2_KEY_VAL
+                CMP		#1,JIS2_KEY_VAL             ;(0-3)行,比較是否=4
+                JGE              JIS25                     ;不相等就JMP KS0
+		MOV		#1,JIS2_KEY_VAL	        ;=4,就把KEY_VAL1,改成0
+
+JIS25		RET
+
+		
+JIS26            CMP.B		#RIGHT,KEY_VAL	          ;比較是否按下1sec向上鍵
+                JNE             JIS27	                     ;不相等就JMP KS2
+                ADD		#1,JIS2_KEY_VAL	                  ;第幾行反白的值減1
+                CMP		#50,JIS2_KEY_VAL             ;(0-3)行,比較是否=255
+                JL              JIS27                       ;不相等就JMP KS2
+                MOV		#50,JIS2_KEY_VAL             ;=255,就把KEY_VAL1,改成3
+
+JIS27		RET
+
+
+;******************************************************************************;
+;  CMP.B       #8,PATTERN
+;******************************************	
+LANGUE_SEL
+
+KS3b		CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             KS4b
+		INC.B		KEY_VAL1		;第幾行反白的值加1
+                CMP.B		#3,KEY_VAL1             ;(0-3)行,比較是否=4
+                JNE             KS0b                     ;不相等就JMP KS0
+		MOV.B		#1,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS0b
+		RET
+KS1b	
+
+		
+KS4b	        CMP.B		#UP,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JNE             KS2b                     ;              cca_en_iec_din                     ;不相等就JMP KS2
+                DEC.B		KEY_VAL1	        ;第幾行反白的值減1
+                CMP.B		#00h,KEY_VAL1          ;(0-3)行,比較是否=255
+                JNE             KS2b                     ;不相等就JMP KS2
+                MOV.B		#2,KEY_VAL1             ;=255,就把KEY_VAL1,改成3		
+KS2b
+		RET   
+                
+;-----------------------------------------------------------------------		
+		
+
+                
+;************************************ 
+; CMP.B       #9,PATTERN
+;**************************************               
+VOLTAGE_12V_24V_SEL
+
+KS3C		CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             KS4C
+		INC.B		KEY_VAL1		;第幾行反白的值加1
+                CMP.B		#3,KEY_VAL1             ;(0-3)行,比較是否=4
+                JNE             KS0C                     ;不相等就JMP KS0
+		MOV.B		#1,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS0C
+		RET
+KS1C	
+
+		
+KS4C	        CMP.B		#UP,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JNE             KS2C                   ;              cca_en_iec_din                     ;不相等就JMP KS2
+                DEC.B		KEY_VAL1	        ;第幾行反白的值減1
+                CMP.B		#00h,KEY_VAL1          ;(0-3)行,比較是否=255
+                JNE             KS2C                     ;不相等就JMP KS2
+                MOV.B		#2,KEY_VAL1             ;=255,就把KEY_VAL1,改成3		
+KS2C
+		RET   
+                
+;-----------------------------------------------------------------------		
+		
+
+                            
+                
+                
+                
+;***********************************
+;       CMP.B       #10,PATTERN        
+;************************************		
+VRAI_AGM_SEL
+
+KS3C_agm	CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                JNE             KS4C_agm
+		INC.B		KEY_VAL1		;第幾行反白的值加1
+                CMP.B		#4,KEY_VAL1             ;(0-3)行,比較是否=4
+                JNE             KS0C_agm                     ;不相等就JMP KS0
+		MOV.B		#1,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS0C_agm
+		RET
+KS1C_agm	
+
+		
+KS4C_agm        CMP.B		#UP,KEY_VAL	        ;比較是否按下1sec向上鍵
+                JNE             KS2C_agm                     ;              cca_en_iec_din                     ;不相等就JMP KS2
+                DEC.B		KEY_VAL1	        ;第幾行反白的值減1
+                CMP.B		#00h,KEY_VAL1          ;(0-3)行,比較是否=255
+                JNE             KS2C_agm                     ;不相等就JMP KS2
+                MOV.B		#3,KEY_VAL1             ;=255,就把KEY_VAL1,改成3		
+KS2C_agm
+		RET                  
+                                          
+;****************************************************************
+;       CMP.B       #11,PATTERN
+;***********************************************	
+disbrakefluid_SEL
+
+
+KS3c		;CMP.B		#DOWN,KEY_VAL		;比較是否按下向下鍵,是就執行下一行,否則就跳到 ks1 執行
+                ;JNE             KS4c
+		;INC.B		KEY_VAL1		;第幾行反白的值加1
+                ;CMP.B		#4,KEY_VAL1             ;(0-3)行,比較是否=4
+                ;JNE             KS0c                     ;不相等就JMP KS0
+		;MOV.B		#1,KEY_VAL1	        ;=4,就把KEY_VAL1,改成0
+KS0c
+		;RET
+KS1c	
+
+		
+KS4c	        ;CMP.B		#UP,KEY_VAL	        ;比較是否按下1sec向上鍵
+                ;JNE             cca_en_iec_din                     ;不相等就JMP KS2
+                ;DEC.B		KEY_VAL1	        ;第幾行反白的值減1
+                ;CMP.B		#00h,KEY_VAL1          ;(0-3)行,比較是否=255
+                ;JNE             KS2c                     ;不相等就JMP KS2
+               ; MOV.B		#3,KEY_VAL1             ;=255,就把KEY_VAL1,改成3		
+KS2c
+		RET
+
+

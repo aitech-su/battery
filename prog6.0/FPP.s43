@@ -1,0 +1,421 @@
+;===================================
+; fppdef4 浮點運算使用    PRINT=1 vat588
+;=========================================
+#define DOUBLE 1
+#define HW_MPY 1
+#define SW_UFLOW 0
+#define SW_RND 1               //1:四捨五入 0:捨去
+#define PRINT 0
+#define AUTO_POWER_ADJ 0
+;===================================
+;    KEY 常數定義 
+;=========================================
+;****************************************
+;KEY REG   
+;****************************************
+     IF PRINT=1
+ENTER       EQU       0BBH      //vat588
+ESC         EQU       0DDH
+UP          EQU       07BH
+DOWN        EQU       0DBH
+RIGHT       EQU       0B7H
+LEFT        EQU       0BDH
+MENU        EQU       0BBH 			
+     ELSE			 
+ENTER       EQU       0EBH       //vat570
+ESC         EQU       0DBH
+UP          EQU       0BDH
+DOWN        EQU       07DH
+RIGHT       EQU       0DDH
+LEFT        EQU       0EDH
+MENU        EQU       0BBH 
+     ENDIF
+;*******************************************************
+;****************************************
+;     LCM 常數定義
+;****************************************
+ON	     EQU      3FH
+OFF	     EQU      3EH
+STAR_LINE0   EQU     0C0H     ;起始點在最底下,0C0H處,最高在0FFH處   
+PAGE0	     EQU     0B8H
+Y_ADDRESS0   EQU      40H    
+
+
+;************************************************
+;   print KEY 常數定義
+;************************************************
+LF          EQU     0ah       ; ASCII Line Feed
+;CR          EQU     0dh       ; ASCII Carriage Return
+ESC_        EQU     1bh       ; ASCII ESC+
+
+;************************************************
+;   testmode  adc1,adc2,adc3,cca 最高最低 常數定義
+;***********************************************
+testmode_adc1_min     EQU    1436      ;ad1 是10R電祖上的電壓   中間值 1586      
+testmode_adc1_max     EQU    1536
+testmode_adc2_min     EQU    1536       ;ad2 是鱷魚夾未夾好的電壓  
+testmode_adc2_max     EQU    1699
+testmode_adc3_min     EQU    1536       ;ad3 是顯示主電壓  中間值 1586  
+testmode_adc3_max     EQU    1699
+testmode_cca_val_min  EQU    300      ;中間值 526 cca 
+testmode_cca_val_max  EQU    700 
+cputempture_work      EQU    2020      ;cpu 內部溫度 大於 1900 才進入測試 cputempture_work
+;===================================
+;     R0 到 R15 定義
+;=========================================
+#define   BR_TABLE0     R4
+#define   BR_TABLE1     R5
+#define   BR_TABLE2     R6
+#define   OFFSET        R7
+#define   POINTER       R8
+#define   LCMTEMP       R9
+#define   WORD_WIDE    R11
+#define   TABLE        R12
+#define   Y_ADDRESS    R13
+#define   Y_PAGE       R14
+
+;===================================
+;information 段B 1000h~107Fh   ff=255 byte
+;=========================================
+#define   LANGUAGE_SEL_INFO_back     01000h
+#define   VOLTAGE_RATE_MSB_back      LANGUAGE_SEL_INFO_back+2
+#define   VOLTAGE_RATE_MID_back      LANGUAGE_SEL_INFO_back+4
+#define   VOLTAGE_RATE_LSB_back      LANGUAGE_SEL_INFO_back+6
+#define   MR_RATE_MSB_back           LANGUAGE_SEL_INFO_back+8
+#define   MR_RATE_MID_back           LANGUAGE_SEL_INFO_back+10
+#define   MR_RATE_LSB_back           LANGUAGE_SEL_INFO_back+12
+;----------------------------------------------
+;information 段A 01080h~10ffh 
+;------------------------------------------------
+#define   LANGUAGE_SEL_INFO          01080h
+#define   VOLTAGE_RATE_MSB           LANGUAGE_SEL_INFO+2
+#define   VOLTAGE_RATE_MID           LANGUAGE_SEL_INFO+4
+#define   VOLTAGE_RATE_LSB           LANGUAGE_SEL_INFO+6
+#define   MR_RATE_MSB                LANGUAGE_SEL_INFO+8
+#define   MR_RATE_MID                LANGUAGE_SEL_INFO+10
+#define   MR_RATE_LSB                LANGUAGE_SEL_INFO+12
+
+
+;===================================
+;計算 ram  200h~9ffh   2048=2k
+;=========================================
+#define    binmsb     0200h
+#define    binmid     binmsb+2
+#define    binlsb     binmsb+4
+
+#define    bcdmsd     binmsb+6
+#define    bcdmid     binmsb+8
+#define    bcdlsd     binmsb+10
+
+#define    fp1msb     binmsb+12
+#define    fp1mid     binmsb+14
+#define    fp1lsb     binmsb+16
+
+#define    fp2msb     binmsb+18
+#define    fp2mid     binmsb+20
+#define    fp2lsb     binmsb+22
+
+#define    fp3msb     binmsb+24
+#define    fp3mid     binmsb+26
+#define    fp3lsb     binmsb+28
+
+;===================================
+;adc ram  230h~24fh
+;=========================================
+#define    adc_           binmsb+30
+#define    adc0           binmsb+32
+#define    adc0_1         binmsb+34
+#define    adc1           binmsb+36 
+#define    adc2           binmsb+38 
+#define    adc3           binmsb+40 
+;#define    adc4           binmsb+42
+;#define    adc5           binmsb+44 
+;#define    adc6           binmsb+46 
+;#define    adc7           binmsb+48 
+#define     adc10          binmsb+50 
+#define    adc_avg_conter binmsb+52
+;===================================
+;batterytestcalculate ram  250h~27fh
+;=========================================
+#define    RES_VAL_H          binmsb+54
+#define    RES_VAL_M          binmsb+56
+#define    RES_VAL_L          binmsb+58
+#define    RES_VAL_H_BCD      binmsb+60
+#define    RES_VAL_M_BCD      binmsb+62
+#define    RES_VAL_L_BCD      binmsb+64
+#define    ADC0_H             binmsb+66
+#define    ADC0_M             binmsb+68
+#define    ADC0_L             binmsb+70
+#define    ADC0_ADC0_1        binmsb+72
+#define    CCA_VAL            binmsb+74
+#define    EN_VAL             binmsb+76
+#define    DIN_VAL            binmsb+78
+#define    IEC_VAL            binmsb+80
+#define    PERCEN_VAL         binmsb+82
+#define    REPLACE_VAL        binmsb+84
+#define    auto_rang          binmsb+86  	
+#define    TESTCOUNT          binmsb+88
+#define   VOLTAGE12VOR24V     binmsb+90        
+#define    AGM_MODE           binmsb+92
+#define    CCA_VAL_temp       binmsb+94
+#define    adc3_VAL_temp      binmsb+96
+#define    adc3_VAL_temp1     binmsb+98
+#define    adc3_count         binmsb+100
+;=========================================
+;brakefluidcalculate ram  280h~29fh
+;=========================================
+;#define    RES_VAL               binmsb+94
+;#define    rx_lsb                binmsb+96
+;#define    rx_mid                binmsb+98
+;#define    rx_msb                binmsb+100
+;#define    R1_K_rx_1_lsb         binmsb+102
+;#define    r2_lsb                binmsb+104
+;#define    r2_mid                binmsb+106
+;#define    r2_msb                binmsb+108
+;#define    r2_lsb_flash          binmsb+110
+;#define    r2_lsb_flash_r2_lsb   binmsb+112
+;#define      brakefluid_PERCEN   binmsb+114
+;#define     brakefluid_PERCEN_2  binmsb+116
+;#define     TESTCOUNT_1          binmsb+118
+;#define     PERCEN_COUNT         binmsb+120
+;#define     brakefluid_running   binmsb+122
+;===================================
+;buz ram  2a0h~2afh
+;=========================================
+#define     beep_length     binmsb+124      //儲存 buzzer 次數
+
+;===================================
+;delay ram  2b0h~2bfh
+;========================================
+#define   delaytemp0            binmsb+126
+#define   delaytemp1            binmsb+128
+#define   delaytemp2            binmsb+130
+
+;===================================
+;detect ram  2c0h~2cfh
+;========================================
+#define     low_voltage_index          binmsb+132
+#define     surface_voltage_index      binmsb+134
+;#define     detect_clips_temp          binmsb+136
+
+  
+;===================================
+;disbattgenerator ram  2d0h~2dfh
+;========================================
+;#define   PAGEDOWN        binmsb+138
+
+;===================================
+;disbattgenerator ram  2e0h~2efh
+;========================================
+#define   nopaper_val        binmsb+140
+#define   nopaper_val_1      binmsb+142
+
+;===================================
+;disnumber ram  2f0h~30fh
+;========================================
+#define   bcd1        binmsb+144
+#define   bcd2        binmsb+146
+#define   bcd3        binmsb+148
+#define   bcd4        binmsb+150
+#define   bcd5        binmsb+152
+#define   bcd6        binmsb+154
+#define   bcd7        binmsb+156
+#define   bcd8        binmsb+158
+
+;===================================
+;fet140_flashwrite_01 ram  310h~31fh
+;========================================
+#define     ENGLISH_TAIWAN    binmsb+160
+
+;===================================
+;generatortest ram  320h~33fh
+;========================================
+#define   r3000_now_v        binmsb+166
+#define   r3000_max_v        binmsb+168
+#define   r3000_min_v        binmsb+170
+#define   now_conter         binmsb+172
+#define   r2000_now_v        binmsb+174
+#define   r2000_max_v        binmsb+176
+#define   r2000_min_v        binmsb+178
+
+;===================================
+;key_index ram  340h~35fh
+;========================================
+#define   KEY_VAL1              binmsb+180                       	
+#define   CCA_KEY_VAL           binmsb+182
+#define   PATTERN               binmsb+184
+#define   PATTERN_disable       binmsb+186
+#define   EN_KEY_VAL            binmsb+188
+#define   DIN_KEY_VAL           binmsb+190
+#define   IEC_KEY_VAL           binmsb+192
+#define   JIS1_KEY_VAL          binmsb+194
+#define   JIS2_KEY_VAL          binmsb+196
+
+;===================================
+;key_scan ram  360h~36fh
+;========================================
+#define   KEY_VAL        binmsb+198
+;===================================
+;lcddisplay ram  370h~37fh
+;========================================
+#define   STAR_LINE   binmsb+200          //;r15
+#define   WORD_BLACK  binmsb+202          //;r10 ;儲存是否反白的開關1=BLACK,0=WHITE
+
+
+;===================================
+;print ram  380h~38fh
+;========================================
+#define    dot_1                     binmsb+204    //memo 1:有dot 0:沒有
+#define    print_good_bad            binmsb+206
+#define    print_charge_cellbad      binmsb+208
+#define    print_square_conter       binmsb+210 
+#define    print_square_spec_conter  binmsb+212
+
+;===================================
+;slv   ram  390h~39fh
+;=======================================
+#define   SLV             binmsb+214
+#define   slv_now_v       binmsb+216
+
+;===================================
+;testmode   ram  3a0h~3afh
+;=======================================
+#define     testmode_y      binmsb+218
+
+;===================================
+;timer_b   ram  3b0h~3bfh
+;=======================================
+#define     backlight_con     binmsb+220
+#define     power_off         binmsb+222
+
+;===================================
+;battbrake   ram  3c0h~3cfh
+;=======================================
+#define   ITEM                binmsb+224
+#define   batt_stack_con      binmsb+226
+#define   ADC6_stack          binmsb+228
+;===================================
+;battstack  3d0h~3dfh
+;=======================================
+#define   ADC4_STACK1          binmsb+230
+#define   batt_stack_con_1     binmsb+232 
+
+;===================================
+;auto 調整 
+;=======================================
+#define     auto_count      binmsb+234
+#define     auto_adc3_H      binmsb+236
+#define     auto_adc3_M      binmsb+238
+#define     auto_adc3_L      binmsb+240
+#define     auto_mr_H      binmsb+242
+#define     auto_mr_M      binmsb+244
+#define     auto_mr_L      binmsb+246
+
+
+
+
+
+
+
+;*******************************************************
+;msp430 LCM PORT1  定義							
+;*******************************************************
+#define  G1DIR  P1DIR
+#define  G1IN   P1IN
+#define  G1OUT  P1OUT
+#define  G1SEL  P1SEL
+#define  G1IE   P1IE
+
+
+;*******************************************************
+;msp430 LCM PORT2  定義							
+;*******************************************************
+#define  G2DIR  P2DIR
+#define  G2IN   P2IN
+#define  G2OUT  P2OUT
+#define  G2SEL  P2SEL
+;----------------------------------
+;#define  D_I        BIT0
+;#define  R_W        BIT1
+;#define  TEST_MOD   BIT2
+;#define  lcm_reset  BIT3
+;#define  CS1        BIT4
+;#define  CS2        BIT5
+;#define  buz        BIT6
+;#define  OUT1       BIT7
+;----------------------------------
+#define  D_I_BIT_OUT        BIT0,&P2OUT
+#define  R_W_BIT_OUT        BIT1,&P2OUT
+#define  TEST_MOD_BIT_IN    BIT2,&P2IN
+#define  lcm_reset_BIT_OUT  BIT3,&P2OUT
+#define  CS1_BIT_OUT        BIT4,&P2OUT
+#define  CS2_BIT_OUT        BIT5,&P2OUT
+#define  buz_BIT_OUT        BIT6,&P2OUT
+#define  OUT1_BIT_OUT       BIT7,&P2OUT
+ 
+;*******************************************************
+;msp430 LCM PORT3  定義							
+;*******************************************************
+#define  G3DIR  P3DIR
+#define  G3IN   P3IN
+#define  G3OUT  P3OUT
+#define  G3SEL  P3SEL
+;----------------------------------
+    // IF PRINT=1                                                //如果用於vat578板子除能這行 因為en=p3.0
+;#define  LCM_EN          BIT0                  //vat570
+#define  LCM_EN_BIT_OUT  BIT0,&P3OUT 		//vat588     
+    // ELSE                                                      //如果用於vat578板子除能這行 因為en=p3.0        
+;#define  LCM_EN          BIT1                  //vat570
+//#define  LCM_EN_BIT_OUT  BIT1,&P3OUT 		//vat570
+    // ENDIF                                                     //如果用於vat578板子除能這行 因為en=p3.0       
+;----------------------------------
+    // IF PRINT=1                                                //如果用於vat578板子除能這行  因為out1=p2.7
+#define  OUT1_BIT_OUT2       BIT7,&P2OUT       //vat588     
+     //ELSE                                                      //如果用於vat578板子除能這行  因為out1=p2.7
+//#define  OUT1_BIT_OUT2       BIT0,&P3OUT       //vat570
+    // ENDIF                                                     //如果用於vat578板子除能這行  因為out1=p2.7     
+;*******************************************************
+;msp430 LCM PORT4  定義							
+;*******************************************************  
+#define  G4DIR  P4DIR
+#define  G4IN   P4IN
+#define  G4OUT  P4OUT
+#define  G4SEL  P4SEL
+;***********************************************
+
+
+;*******************************************************
+;msp430 LCM PORT5  定義							
+;*******************************************************  
+#define  G5DIR  P5DIR
+#define  G5IN   P5IN
+#define  G5OUT  P5OUT
+#define  G5SEL  P5SEL
+;***********************************************
+#define  backlight  BIT7
+#define  dischrg  BIT1
+;----------------------------------
+#define  backlight_BIT_OUT  BIT7,&P5OUT
+#define  dischrg_BIT_OUT  BIT1,&P5OUT
+
+;*******************************************************
+;msp430 LCM PORT6  定義							
+;*******************************************************
+#define  G6DIR  P6DIR
+#define  G6IN   P6IN
+#define  G6OUT  P6OUT
+#define  G6SEL  P6SEL
+;***********************************************
+;#define  ADC0  BIT0
+;----------------------------------
+;#define  ADC0_BIT_OUT  BIT0,&P6OUT
+
+
+
+
+
+
+
+
+
+

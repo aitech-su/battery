@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <fileVersion>2</fileVersion>
+    <fileChecksum>1688864335</fileChecksum>
+    <configuration>
+        <name>Debug</name>
+        <outputs>
+            <file>$PROJ_DIR$\batterytestset.s43</file>
+            <file>$PROJ_DIR$\slv.s43</file>
+            <file>$PROJ_DIR$\FPP.s43</file>
+            <file>$PROJ_DIR$\Debug\List\batt5.map</file>
+            <file>$PROJ_DIR$\disgenerator.s43</file>
+            <file>$PROJ_DIR$\detect.s43</file>
+            <file>$PROJ_DIR$\disslv.s43</file>
+            <file>$TOOLKIT_DIR$\inc\msp430x14x.h</file>
+            <file>$PROJ_DIR$\disbattery.s43</file>
+            <file>$PROJ_DIR$\batterytestcalculate.s43</file>
+            <file>$PROJ_DIR$\battprintmain.s43</file>
+            <file>$PROJ_DIR$\print.s43</file>
+            <file>$PROJ_DIR$\table.s43</file>
+            <file>$PROJ_DIR$\disbattgenerator.s43</file>
+            <file>$PROJ_DIR$\cnv04.s43</file>
+            <file>$TOOLKIT_DIR$\config\linker\lnk430f149.xcl</file>
+            <file>$PROJ_DIR$\lcddisplay.s43</file>
+            <file>$PROJ_DIR$\adc.s43</file>
+            <file>$PROJ_DIR$\bin2bcd4.s43</file>
+            <file>$PROJ_DIR$\fet140_uart06_09600.s43</file>
+            <file>$PROJ_DIR$\disnumber.s43</file>
+            <file>$PROJ_DIR$\dislanguage.s43</file>
+            <file>$PROJ_DIR$\testmode.s43</file>
+            <file>$PROJ_DIR$\asm.s43</file>
+            <file>$PROJ_DIR$\redisplay.s43</file>
+            <file>$PROJ_DIR$\Debug\Exe\batt5.txt</file>
+            <file>$PROJ_DIR$\disagm.s43</file>
+            <file>$PROJ_DIR$\buz.s43</file>
+            <file>$PROJ_DIR$\disnopaper.s43</file>
+            <file>$PROJ_DIR$\disdetect.s43</file>
+            <file>$PROJ_DIR$\Debug\Obj\battprintmain.r43</file>
+            <file>$PROJ_DIR$\keyscan.s43</file>
+            <file>$PROJ_DIR$\printtable.s43</file>
+            <file>$PROJ_DIR$\delay.s43</file>
+            <file>$PROJ_DIR$\fet140_flashwrite_01.s43</file>
+            <file>$PROJ_DIR$\key_index.s43</file>
+            <file>$PROJ_DIR$\generatortest.s43</file>
+            <file>$TOOLKIT_DIR$\config\linker\multiplier.xcl</file>
+            <file>$PROJ_DIR$\fppdef4.s43</file>
+            <file>$PROJ_DIR$\logo.s43</file>
+            <file>$PROJ_DIR$\Debug\Exe\batt5.d43</file>
+            <file>$PROJ_DIR$\disselvotage.s43</file>
+            <file>$PROJ_DIR$\adc10tempture.s43</file>
+            <file>$PROJ_DIR$\disver.s43</file>
+            <file>$PROJ_DIR$\Fpp04.s43</file>
+            <file>$PROJ_DIR$\0-9.s43</file>
+            <file>$PROJ_DIR$\printsquarecalculate.s43</file>
+            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
+            <file>$PROJ_DIR$\battery.s43</file>
+            <file>$PROJ_DIR$\languagesel.s43</file>
+        </outputs>
+        <file>
+            <name>$PROJ_DIR$\battprintmain.s43</name>
+            <outputs>
+                <tool>
+                    <name>A430</name>
+                    <file> 30</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>A430</name>
+                    <file> 7 2 38 44 14 12 32 31 35 17 18 22 16 39 43 34 21 28 24 8 20 4 13 27 45 33 6 29 41 26 9 11 19 36 49 1 48 0 42 46 5</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\asm.s43</name>
+            <outputs>
+                <tool>
+                    <name>A430</name>
+                    <file> 47</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\Debug\Exe\batt5.txt</name>
+            <outputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 3</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 15 37 30</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\Debug\Exe\batt5.d43</name>
+            <inputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 15 37 30</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>[ROOT_NODE]</name>
+            <outputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 25 3</file>
+                </tool>
+            </outputs>
+        </file>
+    </configuration>
+    <configuration>
+        <name>Release</name>
+        <outputs />
+        <forcedrebuild>
+            <name>[MULTI_TOOL]</name>
+            <tool>XLINK</tool>
+        </forcedrebuild>
+    </configuration>
+</project>

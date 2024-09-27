@@ -1,0 +1,159 @@
+;***************************************************************
+;print table
+;**************************************************************
+;***********************************************************
+;ENGLISH PRINT TABLE
+;***********************************************************
+String_SPEC_E     DB 'Input           '
+String_RESULTS_E     DB 'Results         '
+String_CHARGRETEST_E     DB 'Charge Retest'
+String_CELLBAD_E     DB 'Cell Bad'
+String_RECHARGE_E     DB 'Recharge'
+String_INTR_E     DB 'Int.R           '
+String_LIFE_E     DB 'Life            '
+String_GOOD_E     DB 'Good'
+String_BAD_E     DB 'Replace'
+
+String_NORMALV_E     DB 'Normal       V  '
+String_CRANKV_E      DB 'Cranking     V  '
+     
+;----------------------------------------------
+;ENGLISH PRINT TABLE   logo
+;--------------------------------------------------
+String_BATTREPORT_E      DB '      電瓶檢測報告' 
+String_soc_state_E        DB 'SOC '
+String_Customer_name_E    DB 'Customer:'
+String_Technician_name_E  DB 'Technician:'
+
+String_CHARGREPORT_E      DB  '      充電檢測報告'
+String_slv_E      DB  '      啟動檢測報告'
+
+;***********************************************************
+;TAIWAN PRINT TABLE
+;***********************************************************
+String_SPEC_T     DB '輸入規格        '
+String_RESULTS_T     DB '測試結果        '
+String_CHARGRETEST_T     DB '充電重測'
+String_CELLBAD_T     DB '極板損壞'
+String_RECHARGE_T     DB '需充電'
+String_INTR_T     DB '內阻            '
+String_LIFE_T     DB '壽命            '
+String_GOOD_T     DB '良好'
+String_BAD_T     DB '更換'
+
+String_NORMALV_T     DB '靜態電壓        '
+String_CRANKV_T     DB '啟動電壓        '
+
+;-------------------------------------------------
+;TAIWAN PRINT TABLE   logo
+;-------------------------------------------------
+String_BATTREPORT_T      DB '      電瓶檢測報告' 
+String_soc_state_T        DB '充電狀態'
+String_Customer_name_T    DB '顧客名:'
+String_Technician_name_T  DB '技師:'
+
+String_CHARGREPORT_T      DB  '      充電檢測報告'
+String_slv_T      DB  '      啟動檢測報告'
+
+
+;***********************************************************
+;JAPEN PRINT TABLE
+;***********************************************************
+String_SPEC_J     DB '容量入力        '
+String_RESULTS_J     DB '結果            '
+String_CHARGRETEST_J     DB '充電後再ЪЗЬ'
+String_CELLBAD_J     DB 'Йю不良'
+String_RECHARGE_J     DB '要充電'
+String_INTR_J     DB '內部抵抗        '
+String_LIFE_J     DB '狀態            '
+String_GOOD_J     DB '使用可能'
+String_BAD_J     DB '交換'
+
+String_NORMALV_J     DB '通常時          '
+String_CRANKV_J     DB 'ヱь⑦ヱ        '
+
+;-------------------------------------------------
+; JAPEN PRINT TABLE   logo
+;-------------------------------------------------
+String_BATTREPORT_J      DB '      電瓶檢測報告' 
+String_soc_state_J        DB '充電狀態'
+String_Customer_name_J    DB '顧客名:'
+String_Technician_name_J  DB '技術者:'
+
+String_CHARGREPORT_J      DB  '      充電檢測報告'
+String_slv_J      DB  '      啟動檢測報告'
+
+;***********************************************************
+;KOREA PRINT TABLE
+;***********************************************************
+String_SPEC_K     DB 0b1h,0d4h,0b0h,0ddh,0A1h,40h,0c0h,0d4h,0b7h,0c2h,0A1h,40h,0A1h,40h,0A1h,40h    ;0a140h 空白鍵
+String_RESULTS_K     DB 0b0h,0e1h,0b0h,0fah,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h 
+String_CHARGRETEST_K     DB 0c3h,0e6h,0c0h,0fch,0c0h,0e7h,0c3h,0f8h,0c1h,0a4h
+String_CELLBAD_K     DB 0b1h,0d8h,0b9h,0ddh,0bch,0d5h,0bbh,0f3h
+String_RECHARGE_K     DB 0c3h,0e6h,0c0h,0fch,0c7h,0cah,0bfh,0e4h
+String_INTR_K     DB 0c0h,0fah,0c7h,0d7h,0b0h,0aah,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_LIFE_K     DB 0bch,0f6h,0b8h,0edh,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_GOOD_K     DB 0c1h,0c1h,0c0h,0bdh
+String_BAD_K     DB 0b1h,0b3h,0c3h,0bch
+
+String_NORMALV_K     DB 0c1h,0a4h,0b0h,0b4h,0c0h,0fch,0beh,0d0h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_CRANKV_K     DB 0bdh,0c3h,0b5h,0bfh,0c0h,0fch,0beh,0d0h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+
+
+;***********************************************************
+;KOREA PRINT TABLE   logo
+;***********************************************************
+String_dt_logo  DB 0A1h,40h,0A1h,40h,020h,020h,  020h,020h,020h,01bh,021h,0ffh,044h,054h,01bh,021h,00h,041h,055h,054h,04fh,054h,04fh,04fh,04ch,053h,0ah,0ah
+;---------------------------------------------------------------------
+String_BATTREPORT_K      DB 0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0b9h,0e8h,0c5h,0cdh,0b8h,0aeh,0b0h,0cbh,0bbh,0e7h,0bah,0b8h,0b0h,0edh         ;0a0h,46h,0a0h,47h,0a0h,48h,0a0h,6ah,0a0h,0cah,0a0h,0cbh,0a0h,65h
+;String_soc_state_K        DB 0c3h,0e6h,0c0h,0fch,0bbh,0f3h,0c5h,0c2h
+String_Customer_name_K    DB 0b0h,0edh,0b0h,0b4h,0b8h,0edh,0a1h,52h
+String_Technician_name_K  DB 0b4h,0e3h,0b4h,0e7h,0c0h,0dah,0a1h,52h
+
+String_CHARGREPORT_K      DB  0A1h,40h,0A1h,40h,0A1h,40h,0c1h,0a6h,0b3h,0d7h,0b7h,0b9h,0c5h,0b8h,0b0h,0cbh,0bbh,0e7h,0bah,0b8h,0b0h,0edh
+String_slv_K      DB  0A1h,40h,0A1h,40h,0A1h,40h,0bdh,0c3h,0b5h,0bfh,0b8h,0f0h,0c5h,0b8h,0b0h,0cbh,0bbh,0e7h,0bah,0b8h,0b0h,0edh
+
+
+
+;***********************************************************
+;COM USE PRINT TABLE
+;***********************************************************
+String_CCA     DB ' CCA'
+String_EN     DB '  EN'
+String_DIN     DB ' DIN'
+String_IEC     DB ' IEC'
+String_M       DB ' mΩ'
+String_V     DB ' V'
+String_p     DB ' %'
+String_3000RPM     DB '3000 RPM        '
+String_2000RPM     DB '2000 RPM        '
+String_1500RPM     DB '1500 RPM        '
+String_1000RPM     DB '1000 RPM        '
+
+String_MAX     DB 'MAX '
+String_MIN     DB 'MIN '
+String_150V     DB '<   15.0 V'
+String_300V     DB '<   30.0 V'
+String_133V     DB '>   13.3 V'
+String_266V     DB '>   26.6 V'
+String_135V       DB '>   13.5 V'
+String_270V       DB '>   27.0 V'
+String_125V     DB '>   12.5 V'
+String_250V     DB '>   25.0 V'
+String_92V     DB '> 9.2 V'
+String_155V     DB '> 15.5 V'
+
+String_DOT     DB '.'
+;***********************************************************
+;COM USE PRINT TABLE  0-9
+;***********************************************************
+String_0     DB '0123456789'
+;************************************************************
+String_sp1_10     DB '          '
+
+;***********************************************************
+String_square     DB 0a1h,0bdh
+;***********************************************************
+;***********************************************************
+String_square_spec     DB 0a1h,0bch
+;***********************************************************

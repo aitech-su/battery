@@ -1,0 +1,79 @@
+;***************************************************************
+;     電池電量指示   
+;*******************************************************************
+batt_stack
+             
+              call      #adc_4
+testIFG_3_batt_stack      bit       #BIT0,&ADC12IFG         ; Conversion done?
+                        jnz       testIFG_3_batt_stack               ; No, test again
+                        mov       ADC_,ADC4                ; Move result
+                        add       ADC4,ADC4_STACK1
+                        dec       batt_stack_con_1
+                        jz       batt_stack_caluiate
+                        mov       #1,batt_stack_con
+                        RET
+
+batt_stack_caluiate
+                      rra         ADC4_STACK1
+                      rra         ADC4_STACK1
+                      rra         ADC4_STACK1
+                                           
+                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#36,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#26,WORD_WIDE			;輸入字的寬度
+		call            #batt_stack_0 		      ;取出字的table
+		CALL		#WRITE_LCM_CS2	
+                 mov       #8,batt_stack_con_1
+                 mov       #50,batt_stack_con
+                 mov       #0,ADC4_STACK1 
+                RET        
+                                                                                                                  
+batt_stack_0                         
+                      cmp		#310,ADC4_STACK1		;比較A是否為0,是就執行下一行,否則就跳到SCAN1執行
+                jge             batt_Stack_1
+		MOV		#P_0,table	        ;將數字0的TABLE位置放入DPTR
+		RET
+batt_Stack_1		cmp		#30,ADC4_STACK1		;比較A是否為1,是就執行下一行,否則就跳到SCAN2執行
+                jge             batt_Stack_2
+		MOV		#P_1,table		;將數字1的TABLE位置放入DPTR
+		RET
+batt_Stack_2		cmp		#350,ADC4_STACK1		;比較A是否為2,是就執行下一行,否則就跳到SCAN3執行
+                jge             batt_Stack_3
+		MOV		#P_2,table		;將數字2的TABLE位置放入DPTR
+		RET
+batt_Stack_3		cmp		#370,ADC4_STACK1	        ;比較A是否為3,是就執行下一行,否則就跳到SCAN4執行
+                jge             batt_Stack_4
+		MOV		#P_3,table		;將數字3的TABLE位置放入DPTR
+		RET
+batt_Stack_4	      cmp		#380,ADC4_STACK1 		;比較A是否為4,是就執行下一行,否則就跳到SCAN5執行
+                jge             batt_Stack_5
+		MOV		#P_4,table		;將數字4的TABLE位置放入DPTR
+		RET
+batt_Stack_5		cmp		#390,ADC4_STACK1		;比較A是否為5,是就執行下一行,否則就跳到SCAN6執行
+                jge             batt_Stack_6
+		MOV		#P_5,table		;將數字5的TABLE位置放入DPTR
+		RET
+batt_Stack_6		cmp		#400,ADC4_STACK1 	;比較A是否為6,是就執行下一行,否則就跳到SCAN7執行
+                jge             batt_Stack_7
+		MOV		#P_6,table		;將數字6的TABLE位置放入DPTR
+		RET
+batt_Stack_7		cmp		#410,ADC4_STACK1		;比較A是否為7,是就執行下一行,否則就跳到SCAN8執行
+                jge             batt_Stack_8
+		MOV		#P_7,table	        ;將數字7的TABLE位置放入DPTR
+		RET
+batt_Stack_8		cmp		#420,ADC4_STACK1		;比較A是否為8,是就執行下一行,否則就跳到SCAN9執行
+                jge             batt_Stack_9
+		MOV		#P_8,table		;將數字8的TABLE位置放入DPTR
+		RET
+batt_Stack_9		;cmp		#9,lcmtemp		;比較A是否為9,是就執行下一行,否則就RET
+                ;jnz             SCAN_ERR
+		MOV		#P_9,table	        ;將數字9的TABLE位置放入DPTR
+		RET
+
+
+
+                          
+           
+                        
+            

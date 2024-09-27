@@ -1,0 +1,253 @@
+;***************************************************************
+;     功能選擇
+;*******************************************************************
+R2_limit_down			equ		130                   ; warter   30 設 130
+;********************************************************************
+SELECT_BATT_GENERATOR_REP_1
+                  JMP       SELECT_BATT_GENERATOR
+
+brakefluid
+              mov       #0,brakefluid_running             ; 0 :TEST   1: Running
+              BIC.B     #printpower,&P5OUT
+              call     #LCM_INITIAL
+              MOV.B     #9,PATTERN
+              mov.b       #00,KEY_VAL
+              MOV.B     #01,KEY_VAL1
+              MOV.B     #00,testmode_y                                ;連續測試
+MAIN1_brake
+            CALL     #disbrakefluid
+
+            bis.b     #0f0h,&P1IE                                     ;致能p1.7~p1.4 中斷
+
+            CMP.B     #ESC,KEY_VAL
+            jeq       SELECT_BATT_GENERATOR
+
+            CMP.B     #ENTER,KEY_VAL
+            JNE       MAIN1_brake
+
+            MOV       #KEYTABLE_brake,R4
+            MOV.B     KEY_VAL1,R5
+            RLA       R5
+            ADD       R5,R4
+            ;INC       R4
+            BR        R4
+
+KEYTABLE_brake
+            JMP           MAIN1_brake
+            jmp           brakefluid_test
+            jmp           brakefluid_test_running
+            jmp           brakefluid_learn
+            jmp           MAIN1_brake                                 ; Again
+
+
+
+;*******************************************************
+; KEY_VAL1=01    剎車油測試
+;*******************************************************
+brakefluid_test           
+            MOV.B     #11,PATTERN
+            call     #LCM_INITIAL
+            CALL     #DISPLAY7                          ;測試分析中
+            CALL        #brakefluid_test_R1_R2
+
+            call     #LCM_INITIAL
+            CALL     #DISPLAY4                            ;測試結果
+            CALL      #disbrakefluid_water
+             CALL     #DIS_TEST_water_CS1_CS2
+
+              ;MOV	  bcdmid,BCD_MID
+              ;MOV	  bcdlsd,BCD_LSB
+            ;CALL      #BCD_SWPB
+            ;call      #DIS_r2_NUMBER          ;////////////////////
+
+TEST_L4_water_rep
+           ;;; MOV       #4,PERCEN_COUNT
+            ;;;MOV       #0,brakefluid_PERCEN
+
+;;;PERCEN_ADD_8
+             MOV.B     #01,testmode_y                         ;連續測試
+             CALL        #brakefluid_test_R1_R2               ;連續測試
+            CALL        #brakefluid_test_PERCEN
+
+           ;;; ADD         brakefluid_PERCEN_2,brakefluid_PERCEN
+            ;;;DEC          PERCEN_COUNT
+           ;;; JNZ         PERCEN_ADD_8
+            ;;;RRA         brakefluid_PERCEN
+             ;;;RRA         brakefluid_PERCEN
+              ;RRA         brakefluid_PERCEN
+             ;;; MOV         brakefluid_PERCEN,brakefluid_PERCEN_2
+
+            CMP         #R2_limit_down,r2_lsb      ;
+            JGE         TEST_L4_water
+            call       #DIS_water_UNMBER_over
+            mov         #41,brakefluid_PERCEN_2
+            jmp         TEST_L1_water
+
+TEST_L4_water
+            MOV       brakefluid_PERCEN_2,R12
+            call      #BIN2BCD4
+            MOV	  r13,BCD_LSB
+            CALL      #BCD_SWPB
+            call      #DIS_water_UNMBER
+
+            cmp       #81,brakefluid_PERCEN_2
+            JLO        TEST_L1_water
+            call       #DIS_water_UNMBER_over
+;---------------------------------------------------------
+TEST_L1_water
+              MOV     brakefluid_PERCEN_2,TESTCOUNT
+              cmp         #42,TESTCOUNT
+              jl         TEST_L7_water
+              mov         #41,TESTCOUNT
+TEST_L7_water
+            ;MOV     #42,TESTCOUNT
+            MOV     #1,Y_ADDRESS
+
+TEST_L2_water
+
+              ;CALL    #delay4
+
+             call     #DIS_TEST_water
+             ADD          #3,Y_ADDRESS		;輸入address上下(0-63)
+             dec     TESTCOUNT                      ; Decrement R15
+             jc     TEST_L2_water
+
+;----------------------------------------------------------------------------
+
+              MOV     brakefluid_PERCEN_2,TESTCOUNT
+              cmp         #41,TESTCOUNT
+              jge         TEST_L6_water
+              mov         #41,R4
+              sub         TESTCOUNT,R4
+              mov         R4,TESTCOUNT
+
+
+            MOV     #60,Y_ADDRESS
+TEST_L5_water
+
+              ;CALL    #delay3
+
+             call     #DIS_TEST_water_1
+             sub          #3,Y_ADDRESS		;輸入address上下(0-63)
+             dec     TESTCOUNT                      ; Decrement R15
+             jnz     TEST_L5_water
+
+TEST_L6_water
+
+             ; MOV	  bcdmid,BCD_MID
+             ; MOV	  bcdlsd,BCD_LSB
+            ;CALL      #BCD_SWPB
+            ;call      #DIS_r2_NUMBER                ;///////
+
+            CMP         #15,brakefluid_PERCEN_2
+            JGE         brake_warning
+            call        #DIS_PASS
+            jmp           MAIN1tty
+brake_warning
+            CMP         #30,brakefluid_PERCEN_2
+            JGE         brake_chang
+            call        #DIS_WARNING
+            jmp           MAIN1tty
+brake_chang
+            call        #DIS_REPLACE
+
+MAIN1tty
+
+          CMP.B     #ESC,KEY_VAL
+          JEQ       brakefluid
+          
+          CMP.B     #1,brakefluid_running
+          JEQ       TEST_L4_water_rep
+          
+          ;CALL    #delay3
+         
+          jmp         MAIN1tty;
+
+;*******************************************************
+; KEY_VAL1=01    剎車油測試 running
+;*******************************************************
+brakefluid_test_running
+          mov       #1,brakefluid_running
+          jmp        brakefluid_test 
+
+;*******************************************************
+; KEY_VAL1=02    新剎車油學習
+;*******************************************************
+brakefluid_learn
+            MOV.B     #10,PATTERN
+            call     #LCM_INITIAL
+            CALL     #disbrakefluid_learn
+            CALL        #brakefluid_test_R1_R2
+
+            call     #LCM_INITIAL
+            CMP         #R2_limit_down,r2_lsb
+            JLO          learn_ERR
+
+            CALL          #write_flash_R2_VAL
+            CALL     #LEARN_END
+            JMP       learn_PASS
+
+learn_ERR
+              CALL     #LEARN_FAIL
+
+learn_PASS
+
+             MOV	  bcdmid,BCD_MID
+             MOV	  bcdlsd,BCD_LSB
+            CALL      #BCD_SWPB
+            call      #DIS_r2_NUMBER
+
+MAIN1ttQ
+          CMP.B     #ESC,KEY_VAL
+          JEQ       brakefluid
+
+        jmp           MAIN1ttQ
+
+
+;*******************************************
+;寫學習直至 FLASH
+;**************************************
+write_flash_R2_VAL
+
+           MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   r2_lsb,BIN_LSB  ; Load LSBs  #6146h
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#f,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+;	....	  ........     ; Continue until final result is calculated
+	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB       ; BCD digits LSD+3 to LSD
+;			       ; Stack is corrected by POPs
+;	CALL	  #FLT_REC     ; Restore registers
+;	....	  ........     ; Continue with program
+;       CALL	  #FLT_END
+          MOV        BIN_MSB,r2_msb
+          MOV        BIN_MID,r2_mid
+          MOV        BIN_LSB,r2_lsb
+
+            call    #Write_SegA             ; Copy value to segment A
+            mov.w   #FWKEY+WRT,&FCTL1       ; Write bit = 1
+            mov    r2_lsb,&01080h                  ;
+            mov.w   #FWKEY+LOCK,&FCTL3      ; Lock = 1
+             EINT
+            RET
+
+;*******************************************************
+;brakefluid_rep_1
+;*******************************************************
+brakefluid_rep_1
+              JMP        brakefluid
+

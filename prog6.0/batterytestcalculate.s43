@@ -1,0 +1,829 @@
+;*******************************************************
+;msp430 out PIN REG				 		;8051 LCM 腳位定義宣告						
+;*************************************************
+;#define     OUT1         (BIT7)
+ 
+;**************************************** 
+;#define    AGM_MODE        03BAh         
+;*******************************************************
+TEST
+            call     #LCM_INITIAL
+            MOV     #00,auto_rang 
+            CALL     #DISPLAY7
+
+            MOV     #32,TESTCOUNT            
+            MOV     #0,Y_ADDRESS
+TEST_L4
+             ;xor.B     #OUT1_BIT_OUT 
+             CALL         #delay_50ms  
+             call     #DIS_TEST
+             ADD          #4,Y_ADDRESS		;輸入address上下(0-63)
+             dec     TESTCOUNT                  ; Decrement R15
+             jnz     TEST_L4
+              
+;***********************************
+; call      #adc_10   cpu 內部溫度 大於 1900 才進入測試 cputempture_work
+;***********************************
+           ;call     #adc10_tempture              
+;**************************************************************************
+; adc_2 ocv 
+;**************************************************************************
+test_mode
+            call      #adc_3_avg
+            mov     adc_,adc3             ; Move result 等到最後 call   #re_display_battery    
+
+;**************************************************************************
+             ;MOV     #100,TESTCOUNT
+;TEST_L6              
+             ;xor.B     #OUT1_BIT_OUT
+             ;CALL      #delay_3ms           ;delay_1ms =480hz  delay_5ms =100hz          
+             ;dec     TESTCOUNT              ; Decrement R15
+             ;jnz     TEST_L6
+                        
+             ;mov    #01,TESTCOUNT1         ;解決第一次與第二次數據不一樣，先做一次丟棄，再做第二次與 dec TESTCOUNT1 jnz testmode_y_0 搭配
+
+;*********************************************
+; 先測試 auto rang 程式段   mov.b   #1,auto_rang , call   #adc_5_avg
+;*********************************************
+testmode_y_0            
+            BIC.B     #OUT1_BIT_OUT
+            CALL    #delay_3ms          
+                call      #adc_0_nor    
+                 mov     adc_,adc0          ; Move result
+                ;CALL    #delay_1ms
+
+            BIS.B     #OUT1_BIT_OUT
+             CALL    #delay_3ms
+                  call      #adc_0_nor   
+                   mov     adc_,adc0_1          ; Move result
+
+                    sub       adc0_1,adc0            
+                    cmp     #4000,adc0
+                    jl        testmode_y_1
+                    mov.b      #1,auto_rang
+;**************************************************************************
+; TEST_L1 開始測試
+;**************************************************************************           
+ 
+testmode_y_1
+            MOV       #00,ADC0_H
+            MOV       #00,ADC0_M
+            MOV       #00,ADC0_L
+
+            MOV     #10,TESTCOUNT
+            
+TEST_L1
+
+            BIC.B     #OUT1_BIT_OUT
+             CALL    #delay_3ms
+;             call     #detect_connect
+;             CALL    #delay4
+
+          cmp.b       #1,auto_rang
+          jeq         auto_rang_adc_4_1
+            call      #adc_0_nor
+            jmp       testIFG
+auto_rang_adc_4_1            
+            call      #adc_5_avg          ; cmp.b    #1,auto_rang                             
+            
+testIFG     
+            mov     adc_,adc0          ; Move result    
+             ;CALL    #delay_1ms
+
+            BIS.B     #OUT1_BIT_OUT
+            CALL    #delay_3ms
+;            call     #detect_connect
+;            CALL    #delay4
+
+          cmp.b       #1,auto_rang
+          jeq         auto_rang_adc_4_2
+            call      #adc_0_nor
+            jmp       testIFG_1
+auto_rang_adc_4_2            
+            call      #adc_5_avg
+
+testIFG_1     
+            mov     adc_,adc0_1          ; Move result
+            
+          cmp.b       #1,auto_rang
+          jeq         auto_rang_adc_4_3           
+
+            MOV.W      adc0,ADC0_ADC0_1
+            sub       adc0_1,ADC0_ADC0_1
+            jmp       auto_rang_adc_4_4
+auto_rang_adc_4_3
+
+            MOV.W      adc0_1,ADC0_ADC0_1
+            sub       adc0,ADC0_ADC0_1
+ 
+auto_rang_adc_4_4
+
+           MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;          
+        MOV   ADC0_ADC0_1,BIN_LSB  ; Load LSBs
+;           CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+          MOV   ADC0_H,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV    ADC0_M,BIN_MID  ;
+        MOV     ADC0_L,BIN_LSB  ; Load LSBs
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+          POP  fp2msb
+          POP  fp2mid
+          POP  fp2lsb
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_ADD     ; Compute and load pointers with res.address
+
+
+;	....	  ........     ; Continue until final result is calculated
+	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  ADC0_H       ; BCD number MSDs and sign
+	POP	  ADC0_M       ; BCD digits MSD-4 to LSD+4
+	POP	  ADC0_L       ; BCD digits LSD+3 to LSD
+;     CALL	#FLT_REC     ; Restore used registers
+;            RRA       ADC0_L
+;              DEC      delaytemp2
+             dec     TESTCOUNT               ; adc0 加10次 電阻10歐姆 test 10次
+            jnz     TEST_L1
+
+            BIC.B     #OUT1_BIT_OUT
+            call      #adc_1_avg
+            mov     adc_,adc1            ; 電阻上的電壓,算出電流，因adc0加10次=不用除10歐姆
+
+             BIS.B     #OUT1_BIT_OUT
+         
+;***********************************************************************************
+TEST_L2
+;           MOV       adc1,R12
+;          call      #BIN2BCD4
+;          MOV	  r13,BCD_LSB
+;        CALL      #BCD_SWPB
+;         call      #DIS_ADC1
+
+;         MOV       adc0,R12
+;          call      #BIN2BCD4
+;          MOV	  r13,BCD_LSB
+;          CALL      #BCD_SWPB
+;          call      #DIS_ADC0
+
+;           MOV       adc0_1,R12
+;          call      #BIN2BCD4
+;          MOV	  r13,BCD_LSB
+;          CALL      #BCD_SWPB
+;          call      #DIS_ADC0_1
+;          jmp       TEST_L2
+;*****************************************************
+;  adc0 (VOLTAGE)*160/adc1 (I)  CALCULATE RES_VAL
+;**************************************************
+
+           MOV   ADC0_H,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   ADC0_M,BIN_MID  ;
+        MOV   ADC0_L,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+          
+          cmp.b       #1,auto_rang
+          jeq         auto_rang_sel
+          
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   #160,BIN_LSB  ; auto_rang=1 用160 換算
+         jmp    auto_rang_sel_1  
+         
+auto_rang_sel         
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   #1056,BIN_LSB   ; auto_rang=1 用1056 換算 160*6.6=1056 330k+330k=660k
+         
+auto_rang_sel_1
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   adc1,BIN_LSB  ; Load LSBs   用10歐固定電阻
+         ;MOV   #1000,BIN_LSB  ; Load LSBs   用1A 恆流
+         SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp3msb
+       POP  fp3mid
+         POP  fp3lsb
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_MUL     ; Compute and load pointers with res.address
+
+      MOV	#fp3msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+;	MOV       BIN_LSB,RES_VAL
+        mov       BIN_MSB,RES_VAL_H      ;必須先用BIN格式儲存，其他地方要計算用             
+        mov       BIN_MID,RES_VAL_M 
+        mov       BIN_LSB,RES_VAL_L 
+        
+	SUB	#(ML/8)+1,SP ; Allocate stack for result
+	CALL  #CNV_BIN        ; Call conversion routine
+	
+       CALL	  #CNV_FP_BCD  ; Convert final FP result to BCD
+       POP	  bcdmsd       ; BCD number MSDs and sign
+	POP	  bcdmid       ; BCD digits MSD-4 to LSD+4
+	POP	  bcdlsd       ; BCD digits LSD+3 to LSD
+
+
+	   ;dec     TESTCOUNT1           ;解決第一次與第二次數據不一樣，先做一次，再做第二次與 dec TESTCOUNT1 jnz testmode_y_0 搭配
+           ;jnz     testmode_y_0 
+           
+           
+           IF AUTO_POWER_ADJ =1
+           
+;*****************************************************
+;  auto_power_votage ad3 乘修正基數 是info flash
+;************************************************** 	           
+           cmp.b   #01,testmode_y
+           jeq      auto_powe_bypass           
+           
+           call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+           
+           call    #auto_power_mr_rate         ; auto_power_ mr 乘修正基數 是info          
+           
+auto_powe_bypass
+        ELSE
+        ENDIF
+                
+;*****************************************************
+;  DISPLAY  RES_VAL
+;************************************************** 
+CALCULATE_CCA_VAL
+;	  MOV       RES_VAL,R12
+;          call      #BIN2BCD4
+;          MOV	  r13,BCD_LSB
+          ;MOV	  bcdmsd,RES_VAL_H_BCD                  ; Move result 等到最後 call   #re_display_battery
+          MOV	  bcdmid,RES_VAL_M_BCD
+          MOV	  bcdlsd,RES_VAL_L_BCD
+;redisplay
+          ;MOV	  RES_VAL_M_BCD,BCD_MID
+          ;MOV	  RES_VAL_L_BCD,BCD_LSB
+         ;CALL      #BCD_SWPB
+          ;call      #DIS_MR        
+        
+	
+;*****************************************************
+;  282870/RES_VAL  CALCULATE CCA_VAL
+;**************************************************
+                 CMP           #2,VOLTAGE12VOR24V
+                 jeq           CALCULATE_cca_24vx2                         
+
+           MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #04h,BIN_MID  ;
+        MOV   #2bb5h,BIN_LSB  ; Load LSBs            0450f6h#1370h#470ah#2bb5h#51c3h
+        jmp      CALCULATE_cca_12vx1 
+        
+CALCULATE_cca_24vx2        
+           MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #08h,BIN_MID  ;
+        MOV   #576ah,BIN_LSB  ; Load LSBs            0450f6h#1370h#470ah#2bb5h#51c3h  
+        
+CALCULATE_cca_12vx1       
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+
+          MOV   RES_VAL_H ,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   RES_VAL_M,BIN_MID  ;
+         MOV   RES_VAL_L,BIN_LSB  ; Load LSBs
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+         
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address
+     
+;********************************************************     
+;AGM CCA * 0.92  EFB *0.96  
+;********************************************************
+             CMP.B     #1,testmode_y
+             jeq           not_agm
+            CMP           #1,AGM_MODE
+            jeq           not_agm
+            
+            CMP           #3,AGM_MODE
+            jeq           EFB
+AGM            
+        MOV	#e,RPARG	; Address b
+    	CALL	#FLT_MUL	; a x b -> RS0
+        jmp     not_agm  
+        
+EFB        
+        MOV	#f,RPARG	; Address b
+    	CALL	#FLT_MUL	; a x b -> RS0
+ 
+not_agm
+;	....	  ........     ; Continue until final result is calculated
+	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB       ; BCD digits LSD+3 to LSD
+;			       ; Stack is corrected by POPs
+;	CALL	  #FLT_REC     ; Restore registers
+;	....	  ........     ; Continue with program
+;       CALL	  #FLT_END
+
+          CMP        #01,BIN_MSB
+          jge        CCA_OVER_9999          
+          CMP        #01,BIN_MID
+          jge        CCA_OVER_9999 
+          
+          CMP        #9999,BIN_LSB
+          jge        CCA_OVER_9999
+          
+          MOV        BIN_LSB,CCA_VAL
+          jmp        CCA_NOR
+          
+CCA_OVER_9999   
+              MOV        #9999,CCA_VAL
+CCA_NOR                      
+
+          CMP.B     #1,testmode_y
+          jne       EN_CALCULATE
+          RET
+          
+;*****************************************************
+;   CCV_VAL*0.92 CALCULATE EN_VAL
+;**************************************************
+EN_CALCULATE
+           MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+        MOV   CCA_VAL,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+  	 SUB	#(ML/8)+1,SP ; Allocate stack for result
+    	MOV	#fp1msb,RPRES	; Address a
+    	MOV	#a,RPARG	; Address b
+    	CALL	#FLT_MUL	; a x b -> RS0
+    	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB       ; BCD digits LSD+3 to LSD
+        MOV        BIN_LSB,EN_VAL
+
+
+
+
+;*****************************************************
+;   CCV_VAL*0.6298 CALCULATE IEC_VAL
+;**************************************************
+  	 SUB	#(ML/8)+1,SP ; Allocate stack for result
+    	MOV	#fp1msb,RPRES	; Address a
+    	MOV	#b,RPARG	; Address b
+    	CALL	#FLT_MUL	; a x b -> RS0
+    	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB       ; BCD digits LSD+3 to LSD
+        MOV        BIN_LSB,IEC_VAL
+
+
+;*****************************************************
+;   CCV_VAL*0.559 CALCULATE DIN_VAL
+;**************************************************
+    	 SUB	#(ML/8)+1,SP ; Allocate stack for result
+    	MOV	#fp1msb,RPRES	; Address a
+    	MOV	#c,RPARG	; Address b
+    	CALL	#FLT_MUL	; a x b -> RS0
+    	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB       ; BCD digits LSD+3 to LSD
+        MOV        BIN_LSB,DIN_VAL
+
+
+;*****************************************************
+;  mov cca_val,en_val ...... to bin_lsb
+;************************************************** 	
+          CMP.B       #2,PATTERN
+          JNE         EN_P
+
+           MOV   #0,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #0,BIN_MID  ;
+        MOV   CCA_VAL,BIN_LSB  ; Load LSBs
+        JMP       PER1
+
+EN_P
+         CMP.B       #3,PATTERN
+          JNZ         DIN_P
+
+            MOV   #0,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #0,BIN_MID  ;
+        MOV   EN_VAL,BIN_LSB  ; Load LSBs
+        JMP       PER1
+
+DIN_P
+         CMP.B       #4,PATTERN
+          JNZ         IEC_P
+
+            MOV   #0,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #0,BIN_MID  ;
+        MOV   DIN_VAL,BIN_LSB  ; Load LSBs
+        JMP       PER1
+
+IEC_P
+         CMP.B       #5,PATTERN
+          JNZ         JIS1_P
+
+            MOV   #0,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #0,BIN_MID  ;
+        MOV   IEC_VAL,BIN_LSB  ; Load LSBs
+        JMP       PER1
+
+JIS1_P
+         CMP.B       #6,PATTERN
+          JNZ         JIS2_P
+
+            MOV   #0,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #0,BIN_MID  ;
+        MOV   CCA_VAL,BIN_LSB  ; Load LSBs
+        JMP       PER1
+
+
+JIS2_P
+         CMP.B       #7,PATTERN
+          JNZ         PER1
+
+            MOV   #0,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #0,BIN_MID  ;
+        MOV   CCA_VAL,BIN_LSB  ; Load LSBs
+
+
+
+;            CALL	#FLT_SAV     ; Save registers
+PER1            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb             ;cca_val
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   #100,BIN_LSB  ; Load LSBs
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+;*****************************************************
+;  mov cca_key_val,en_key_val ...... to bin_lsb
+;************************************************** 	
+
+        CMP.B       #2,PATTERN
+          JNZ         EN_P_K
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   CCA_KEY_VAL,BIN_LSB  ; Load LSBs
+         JMP    PER2
+EN_P_K
+          CMP.B       #3,PATTERN
+          JNZ         DIN_P_K
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   EN_KEY_VAL,BIN_LSB  ; Load LSBs
+         JMP    PER2
+
+DIN_P_K
+          CMP.B       #4,PATTERN
+          JNZ         IEC_P_K
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   DIN_KEY_VAL,BIN_LSB  ; Load LSBs
+         JMP    PER2
+
+IEC_P_K
+          CMP.B       #5,PATTERN
+          JNZ         JIS1_P_K
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   IEC_KEY_VAL,BIN_LSB  ; Load LSBs
+         JMP    PER2
+
+JIS1_P_K
+          CMP.B       #6,PATTERN
+          JNZ         JIS2_P_K
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   CCA_KEY_VAL,BIN_LSB  ; Load LSBs
+         JMP    PER2
+
+JIS2_P_K
+          CMP.B       #7,PATTERN
+          JNZ         PER2
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;  
+         MOV   CCA_KEY_VAL,BIN_LSB  ; Load LSBs
+
+;-----------------------------------------------------------
+;CALCULATE PERCEN (((cca_val/CCA_KEY_VAL)/d)^4)*100  fp1=cca_val fp2=100 fp3=cca_key_val
+;------------------------------------------------------
+PER2
+           CMP             #6,KEY_VAL1
+           JEQ             TESTEND
+
+         SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp3msb
+       POP  fp3mid
+         POP  fp3lsb            ;cca_key_val
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp3msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address
+      MOV	#d,RPARG  ; Load argum. pointer with VAL2 address MSB
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+     CALL	#FLT_MUL     ; Compute and load pointers with res.address
+;     CALL	#FLT_MUL     ; Compute and load pointers with res.address
+
+      MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+      CALL	#FLT_MUL     ; Compute and load pointers with res.address
+      CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+      POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+	
+;*****************************************************
+;DISPLAY PERCEN
+;**************************************************
+            CMP       #0,BIN_LSB              ;BIN_LSB 為負數              
+            jl        PERCEN_OVER
+                                            
+            CMP       #01,BIN_MSB
+            jge       PERCEN_OVER
+ 	    CMP       #01,BIN_MID
+            jge       PERCEN_OVER
+            CMP       #100,BIN_LSB
+ 	    jge       PERCEN_OVER
+            
+            MOV       BIN_LSB,PERCEN_VAL
+            jmp       PERCEN
+
+PERCEN_OVER            MOV       #100,PERCEN_VAL       ; Move result 等到最後 call   #re_display_battery
+PERCEN
+           ; MOV       PERCEN_VAL,R12                ; Move result 等到最後 call   #re_display_battery
+          ;call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+        ;CALL      #BCD_SWPB
+        ;call      #DIS_100
+;*****************************************************
+; CALCULATE REPLACE_VAL PASS OR REPLACE  ((((adc2/100)^2)/200)^4)*100         1260v/100=12.6v 12.6^2/200=0.793^4*100
+;**************************************************
+CALCULATE_GOOD_REPLACE
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   adc3,BIN_LSB  ; Load LSBs
+         
+                CMP           #1,VOLTAGE12VOR24V
+                JNE           voltage_24v_adc3_2            
+                jmp           voltage_12v_adc3
+voltage_24v_adc3_2 
+          rra    BIN_LSB 
+voltage_12v_adc3 
+
+          SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+       POP  fp1mid
+         POP  fp1lsb        
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   #100,BIN_LSB  ; Load LSBs  
+         SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp2msb
+       POP  fp2mid
+         POP  fp2lsb
+
+         MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   #200,BIN_LSB  ; Load LSBs    31900
+         SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp3msb
+         POP  fp3mid
+         POP  fp3lsb
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB    p
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address     p
+     CALL	#FLT_MUL     ; Compute and load pointers with res.address     p
+;     CALL	#FLT_MUL     ; Compute and load pointers with res.address     p
+
+      MOV	#fp3msb,RPARG  ; Load argum. pointer with VAL2 address MSB    p
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+            MOV	#d,RPARG  ; Load argum. pointer with VAL2 address MSB
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+      CALL	#FLT_MUL     ; Compute and load pointers with res.address     p
+;      CALL	#FLT_MUL     ; Compute and load pointers with res.address     p
+      MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB    p
+      CALL	#FLT_MUL     ; Compute and load pointers with res.address     p
+      CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+      POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+	
+;*****************************************************
+;DISPLAY GOOD OR REPLACE
+;************************************************** 
+
+            MOV       BIN_LSB,REPLACE_VAL        
+            
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           DISPLAY_GOOD_OR_REPLACE_24V           
+                        
+          CMP     #1100,adc3
+          jge     GOOD_OR_BAD
+          cmp     #0,PERCEN_VAL
+          jge     CELL_BAD
+          jmp     CHARGE_RETEST_REPLACE
+
+
+
+CELL_BAD
+          call      #DIS_REPLACE
+          mov.b     #3,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          call      #DIS_CELL_BAD
+          mov.b     #3,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+          JMP       TESTEND
+
+
+GOOD_OR_BAD
+
+          cmp       #1150,adc3
+          jl       CHARGE_RETEST_REPLACE
+          CMP     REPLACE_VAL,PERCEN_VAL
+          JGE       PASS
+          cmp       #1220,adc3
+          jl       CHARGE_RETEST_REPLACE
+;          cmp       #1,low_voltage_index
+;          jeq       CHARGE_RETEST_REPLACE
+          call      #DIS_REPLACE
+          mov.b     #3,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          JMP       TESTEND
+
+CHARGE_RETEST_REPLACE
+          CMP     #1150,adc3
+          jl      CHARGE_RETEST
+          rra        REPLACE_VAL
+          rra        REPLACE_VAL
+          rra        REPLACE_VAL
+          CMP     REPLACE_VAL,PERCEN_VAL
+          jge     CHARGE_RETEST
+          call      #DIS_REPLACE
+          mov.b     #3,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          JMP       TESTEND
+
+CHARGE_RETEST
+          call      #DIS_CHARGE_RETEST
+          mov.b     #2,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          mov.b     #2,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+          JMP       TESTEND
+
+PASS
+;          CMP     #1100,adc3
+;          jl        CELL_BAD
+          call      #DIS_PASS
+          mov.b     #1,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          cmp       #1240,adc3
+          jge        TESTEND
+;          cmp       #1,low_voltage_index
+;          jnz       TESTEND
+
+          call      #DIS_CHARGE
+          mov.b     #1,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+          ;JMP       TESTEND
+
+TESTEND 
+          RET
+
+;*****************************************************
+;DISPLAY GOOD OR REPLACE  24V
+;**************************************************   	           
+DISPLAY_GOOD_OR_REPLACE_24V
+
+          CMP     #2200,adc3
+          jge     GOOD_OR_BAD_24V
+          cmp     #0,PERCEN_VAL
+          jge     CELL_BAD_24V
+          jmp     CHARGE_RETEST_REPLACE_24V
+
+
+
+CELL_BAD_24V
+          call      #DIS_REPLACE
+          mov.b     #3,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          call      #DIS_CELL_BAD
+          mov.b     #3,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+          JMP       TESTEND_24V
+
+
+GOOD_OR_BAD_24V
+
+          cmp       #2300,adc3
+          jl       CHARGE_RETEST_REPLACE_24V
+          CMP     REPLACE_VAL,PERCEN_VAL
+          JGE       PASS_24V
+          cmp       #2440,adc3
+          jl       CHARGE_RETEST_REPLACE_24V
+;          cmp       #1,low_voltage_index
+;          jeq       CHARGE_RETEST_REPLACE
+          call      #DIS_REPLACE
+          mov.b     #3,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          JMP       TESTEND_24V
+
+CHARGE_RETEST_REPLACE_24V
+          CMP     #2300,adc3
+          jl      CHARGE_RETEST_24V
+          rra        REPLACE_VAL
+          rra        REPLACE_VAL
+          rra        REPLACE_VAL
+          CMP     REPLACE_VAL,PERCEN_VAL
+          jge     CHARGE_RETEST_24V
+          call      #DIS_REPLACE
+          mov.b     #3,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          JMP       TESTEND_24V
+
+CHARGE_RETEST_24V
+          call      #DIS_CHARGE_RETEST
+          mov.b     #2,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          mov.b     #2,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+          JMP       TESTEND_24V
+
+PASS_24V
+;          CMP     #1100,adc3
+;          jl        CELL_BAD
+          call      #DIS_PASS
+          mov.b     #1,print_good_bad                 ;1:良好 2:不顯示 3:更換
+          cmp       #2480,adc3
+          jge        TESTEND_24V
+;          cmp       #1,low_voltage_index
+;          jnz       TESTEND
+
+          call      #DIS_CHARGE
+          mov.b     #1,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+          ;JMP       TESTEND_24V
+
+TESTEND_24V
+        RET
+        
+
+         
+         
+         

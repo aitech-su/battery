@@ -1,0 +1,376 @@
+;******************************************************************************
+;   MSP-FET430P140 Demo - Software Toggle P1.0
+;
+;   Description; Toggle P1.0 by xor'ing P0.1
+;   ACLK = n/a, MCLK = SMCLK = default DCO ~ 800k
+;
+;                MSP430F149
+;             -----------------
+;         /|\|              XIN|-
+;          | |                 |
+;          --|RST          XOUT|-
+;            |                 |
+;            |             P1.0|-->LED
+;
+;   M.Buccini
+;   Texas Instruments, Inc    
+;   January 2004
+;****************************************************************************** 
+#include  "msp430x14x.h"
+;#include  "RTC_BT.h"
+ 
+#include  "FPP.s43"
+;*************************************************
+;最後使用 RAM 03DCh
+ 
+;**************************************************
+;  max   Bytes: 61176  Error[90]: Different parts of ASEG have overlapping code
+;***********************************************
+;------------------------------------------------------------------------------
+             ORG     01100h                  ; Progam Start ORG     
+;------------------------------------------------------------------------------
+	
+;******************************************************
+#include "fppdef4.s43"
+#include "fpp04.s43"
+#include "cnv04.s43"
+;#include "fppfnc4.s43"               ;sin cos
+
+#include  "table.s43"
+#include  "printtable.s43"
+
+;#include  "timer_b.s43"
+
+#include  "keyscan.s43"
+#include  "key_index.s43"
+
+#include  "adc.s43"
+#include  "bin2bcd4.s43"
+#include  "testmode.s43"
+
+#include  "lcddisplay.s43"
+#include  "logo.s43"
+#include  "disver.s43"
+
+;#include  "battstack.s43"
+
+#include "fet140_flashwrite_01.s43"
+
+#include  "dislanguage.s43"
+#include  "disnopaper.s43"
+#include  "redisplay.s43"
+;#include  "disbrakefluid.s43"
+#include  "disbattery.s43"
+
+#include  "disnumber.s43"
+#include  "disgenerator.s43"
+#include  "disbattgenerator.s43"
+#include  "buz.s43"
+#include  "0-9.s43"
+#include  "delay.s43"
+#include  "disslv.s43"
+#include  "disdetect.s43"
+
+#include  "disselvotage.s43"
+#include  "disagm.s43" 
+
+;******************************************************
+;#include  "brakefluidcalculate.s43"
+
+#include  "batterytestcalculate.s43"
+
+#include  "print.s43"
+#include  "fet140_uart06_09600.s43"
+
+#include  "generatortest.s43"
+#include  "languagesel.s43"
+#include  "slv.s43"
+#include  "battery.s43"
+#include  "batterytestset.s43"
+#include  "adc10tempture.s43"
+;******************************************************
+;#include  "brakefluid.s43"
+#include  "printsquarecalculate.s43"
+#include  "detect.s43"
+   IF AUTO_POWER_ADJ =1
+#include  "autopoweradj.s43"  
+  ELSE
+  ENDIF 
+;******************************************************  
+a		.float	0.92		; 8140 0000 EN
+b		.float	0.6298		; 8240 0000 DIN
+c		.float	0.559		; 8600 0000 IEC
+d		.float	1.0	        ; 1.1 cca加 10% 
+e               .float	0.92	        ;AGM 電池 CCA 0.92 %
+f               .float	0.96	        ;EFB 電池 CCA 0.96 %
+g               .float	1555.0          ;auto_power校正 adc3 power 電壓 1277/adc3
+h               .float  520.0           ; power mr 的值
+;e	        .float  529941.18
+;f	        .float  1.2
+   ; even
+                    
+;*****************************************************
+;  main start
+;**************************************************
+MAIN        mov.w     #0A00h,SP               ; Initialize 'x1x9 stackpointer 
+StopWDT     mov.w     #WDTPW+WDTHOLD,&WDTCTL  ; Stop WDT 
+SetupP1     mov.b     #0FBh,&G2DIR            ; P2 all  output P2.2 INPUT      1111 1011
+            mov.b     #080h,&G2OUT            ;set buz bic out1 & clr lcm/reset  #1000 0000           
+            bis.b     #083h,&G3DIR            ; P3 out2 &lcm/enable  output
+            mov.b     #001h,&G3OUT            ;set out2
+            bis.b     #0FFh,&G4DIR            ; P4 all  output
+                        
+            bis.b     #00f2h,&G5DIR           ; P5  1111 0010 output 1=output
+            bic.b     #backlight_BIT_OUT        ;set lcm_backlight off 
+            bis.b     #dischrg_BIT_OUT        ;set dischrg=1 chrg=0
+
+            bis.b     #010h,&G5SEL             ; P5.4,5,6 MCLK,SMCLK,ACLK OUPUT select  
+            bis.b     #BIT0+BIT1+BIT2+BIT3+BIT5,&G6SEL             ; P6.0 ADC option select    
+     
+            eint             
+            ;call     #keyscan
+            mov.w     #REFON+REF2_5V+ADC12ON+SHT0_2,&ADC12CTL0   ; Sampling time, ADC12 on
+  
+            MOV       #00,KEY_VAL
+            BIC.B     #R_W_BIT_OUT
+            CLR       WORD_BLACK
+            MOV.B     #00,testmode_y
+ 
+            bit.b     #TEST_MOD_BIT_IN     ;04h,P2IN
+            jnz       nor_mode
+            call      #testmode
+nor_mode
+ 
+             call     #keyscan
+             ;CMP.B     #ESC,KEY_VAL       ;按七下進入設定 上鍵英 下鍵中 左鍵韓 右鍵日       
+             ;jne        E_C
+             ;CALL      #LANGUAGE_SEL
+
+E_C
+            MOV       #01H,KEY_VAL1
+            MOV       #500,CCA_KEY_VAL
+            MOV       #500,EN_KEY_VAL
+            MOV       #300,DIN_KEY_VAL
+            MOV       #300,IEC_KEY_VAL
+            MOV       #1,JIS1_KEY_VAL
+            MOV       #1,JIS2_KEY_VAL
+            
+            ;mov       #0,ADC4_STACK1 
+                          
+            ;mov.w     #REFON+REF2_5V+ADC12ON+SHT0_2,&ADC12CTL0   ; Sampling time, ADC12 on 
+            ;mov.b   #SREF_2,&ADC12MCTL0      ; A1 goes to MEM0  
+          
+            call      #delay_50ms
+            bis.b     #lcm_reset_BIT_OUT         ;set lcm/reset
+            call      #LCM_INITIAL
+            call      #logo
+            call      #display_v
+                                            
+            bis.b     #backlight_BIT_OUT         ;set lcm_backlight
+            call      #delay_1s
+
+            call     #BEEP
+                                    
+            ;call      #baklight_power_off         ;配合;#include  "timer_b.s43" 自動關背光與關機
+            
+;---------------------------------------------------
+            MOV.B       &LANGUAGE_SEL_INFO,ENGLISH_TAIWAN
+                      
+            and.b       #7fh,ENGLISH_TAIWAN           ;修正080h太大的錯誤，覆蓋高bit8   0111 1111   7f
+            CMP.B       #03,ENGLISH_TAIWAN            ;強制設定語言 01 英文 02中文 03 日文 04 韓文 05 簡體
+            jl          ENGLISH_TAIWAN_pass_1
+            MOV.B       #02,ENGLISH_TAIWAN
+
+ENGLISH_TAIWAN_pass_1
+            CMP.B       #00,ENGLISH_TAIWAN
+            jne       ENGLISH_TAIWAN_pass
+            MOV.B       #02,ENGLISH_TAIWAN
+ENGLISH_TAIWAN_pass
+
+            ;MOV.B       #02,ENGLISH_TAIWAN            ;強制設定語言 01 英文 02中文 03 日文 04 韓文 05 簡體
+;---------------------------------------------------
+
+;**************************************************
+; 12V  OR  24V OR NiMH7.2V OR NiMH14.4V  SELECT
+;*****************************************************
+SELECT_12V_24V
+            MOV       #00,KEY_VAL
+            call     #LCM_INITIAL
+            MOV.B     #9,PATTERN
+            MOV.B     #01,KEY_VAL1
+            mov     #0,low_voltage_index
+            mov     #1,AGM_MODE      ;1=Lead-acid  2=AGM
+           
+SELECT_12V_24V_loop
+            call     #disselvoltage_12_24
+            
+            ;call     #detect_connect
+            bis.b     #0f0h,&G1IE               ;致能p1.7~p1.4 中斷
+            mov     KEY_VAL1,VOLTAGE12VOR24V      ;1=12V 2=24V 3=NIMH7.2 4=NIMH14.4
+            
+            call     #dis_12v_24v
+            
+            CMP.B     #ESC,KEY_VAL                 ;主畫面跳至 設定語言
+            jeq       LANGUAGE_SEL_ESC_rep1
+
+            CMP.B     #ENTER,KEY_VAL       
+                      
+            JNE       SELECT_12V_24V_loop
+            
+;**************************************************
+; SELECT 12V  OR  24V OR NiMH7.2V OR NiMH14.4V 
+;*****************************************************
+            MOV       #KEYTABLE_NIMH,R4
+            MOV.B     KEY_VAL1,R5
+            dec       R5
+            RLA       R5
+            RLA       R5
+            ADD       R5,R4
+            BR        R4
+
+KEYTABLE_NIMH
+           mov        #SELECT_BATT_GENERATOR,pc
+           mov        #SELECT_BATT_GENERATOR,pc
+           mov        #JIS3,pc
+           mov        #JIS3,pc 
+
+
+                          
+;**************************************************
+; SELECT_BATT_GENERATOR SELECT
+;*****************************************************
+SELECT_BATT_GENERATOR            
+
+            MOV       #00,KEY_VAL
+            call     #LCM_INITIAL
+            MOV.B     #0,PATTERN
+            MOV.B     #01,KEY_VAL1
+            mov     #0,low_voltage_index         
+SELECTLOOP
+            call     #disselectitem
+
+            call     #detect_connect
+            
+            CMP.B     #ESC,KEY_VAL
+            jeq       SELECT_12V_24V           
+
+            CMP.B     #ENTER,KEY_VAL 
+            JNE       SELECTLOOP
+
+            MOV       #KEYTABLEa,R4
+            MOV.B     KEY_VAL1,R5
+            dec       R5
+            RLA       R5
+            RLA       R5
+            ADD       R5,R4
+            BR        R4
+
+KEYTABLEa
+           mov        #SELECT_VRAL_AGM,pc
+           mov        #generator,pc
+           mov        #slv,pc
+
+;  SELECT_BATT_GENERATOR
+           
+           ;;; BIC.B     #printpower,&P5OUT
+           ;;; MOV       #00,KEY_VAL
+           ;;; call     #LCM_INITIAL
+            ;;;MOV.B     #0,PATTERN
+            ;;;MOV.B     #01,KEY_VAL1
+           ;;; mov     #0,low_voltage_index
+
+;;;SELECTLOOP
+           ;;; call     #disselectitem
+            
+            ;;;dec       batt_stack_con
+            ;;;jnz       batt_stack_jmp
+            ;call     #batt_stack
+;;;batt_stack_jmp
+             
+            ;call     #detect_connect
+           ;;; bis.b     #0f0h,&G1IE          ;致能p1.7~p1.4 中斷
+
+           ;CMP.B     #ESC,KEY_VAL
+           ;jeq       LANGUAGE_SEL_ESC
+
+           ;;; CMP.B     #ENTER,KEY_VAL
+            ;;;JNE       SELECTLOOP
+
+            ;;;MOV       #KEYTABLEa,R4
+            ;;;MOV.B     KEY_VAL1,R5
+            ;;;RLA       R5
+            ;;;ADD       R5,R4
+            ;INC       R4
+           ;;; BR        R4
+
+;;;KEYTABLEa
+           ;;;JMP        SELECTLOOP
+           ;;;JMP        battery
+           ;;;JMP        generator
+           ;;;JMP        slv
+            ;JMP        brakefluid_rep_1
+           ;;;jmp      SELECTLOOP
+           
+;SELECT_BATT_GENERATOR_rep1
+        ;jmp   SELECT_BATT_GENERATOR  
+
+
+;**************************************************
+; VRAL  OR AGM SELECT
+;*****************************************************
+SELECT_VRAL_AGM
+
+            MOV       #00,KEY_VAL
+            call     #LCM_INITIAL
+            MOV.B     #10,PATTERN
+            MOV.B     #01,KEY_VAL1
+           
+SELECT_VRAL_AGM_loop
+          
+            
+            call     #detect_connect
+            bis.b     #0f0h,&G1IE          ;致能p1.7~p1.4 中斷
+            mov     KEY_VAL1,AGM_MODE      ;1=Lead-acid  2=AGM
+            
+            call     #disagm
+
+            CMP.B     #ESC,KEY_VAL
+            jeq       SELECT_BATT_GENERATOR 
+
+            CMP.B     #ENTER,KEY_VAL
+                      
+            JNE       SELECT_VRAL_AGM_loop
+            mov       #battery,pc
+
+
+;***********************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;***********************************       
+LANGUAGE_SEL_ESC_rep1
+
+          mov       #LANGUAGE_SEL_ESC,pc
+
+;------------------------------------------------------------------------------
+;           Interrupt Vectors Used MSP430x13x/14x/15x/16x
+;------------------------------------------------------------------------------
+            ORG     0FFFEh                  ; MSP430 RESET Vector
+            DW      MAIN
+
+            ;ORG     0FFFAh                  ; Timer_B0 Vector
+            ;DW      TB0_ISR
+
+            ORG     0FFF2h                  ;
+            DW      USART0RX_ISR            ; USART0 receive
+            ORG     0FFF0h                  ;
+            DW      USART0TX_ISR            ; USART0 transmit
+
+            ORG     0FFEEh                  ; ADC12 Vector
+            DW      ADC12_ISR                    ;
+            ORG     0FFECh                  ; Timer_A0 Vector
+            DW      TA0_ISR
+
+            ORG     0FFE8h                  ; P1 Vector
+            DW      P1ISR
+
+
+            END

@@ -1,0 +1,271 @@
+;****************************************
+;LCM REG   
+;****************************************
+;****************************************
+;detect connect & engine & surface voltage
+;****************************************
+CCA
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          MOV.B     #00,PATTERN_disable
+;           call        #LCM_BLACK_CS1
+;           call        #LCM_BLACK_CS2
+
+          MOV.B     #2,PATTERN
+CCA_L1
+          call        #DISPLAY2
+           call     #detect_connect
+          MOV       CCA_KEY_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  R13,BCD_LSB
+          ;CALL      #BCD_SWPB
+          call      #DISPLAY3
+          call      #UNIT_CCA
+          CMP.B     #ESC,KEY_VAL
+          JEQ       battery_rep1
+
+          CMP.B     #ENTER,KEY_VAL
+          JEQ       CCA_L2
+          bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+          JMP       CCA_L1
+
+CCA_L2      call      #TEST
+            call      #re_display_battery
+
+               ;call      #UNIT_CCA_2
+               mov.b     #00h,KEY_VAL
+                
+CCA_END
+                  MOV.B     #1,PATTERN_disable
+                  bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+          
+
+                CMP.B     #ENTER,KEY_VAL
+                JEQ       print_battery_start
+
+                CMP.B     #ESC,KEY_VAL
+                JNE       CCA_END
+
+                jmp       battery_rep1
+
+print_battery_start
+                mov.b     #00h,KEY_VAL
+                MOV.B     #00,nopaper_val_1
+                MOV.B     #00,nopaper_val
+                call      #print
+               mov.b         #00h,KEY_VAL
+               CMP.B     #00,nopaper_val_1       ;
+               JEQ        battery_print_end
+               
+battery_print_re_display_battery               
+               call      #re_display_battery
+                MOV.B     #00,nopaper_val
+
+battery_print_end
+             bis.b     #0f0h,&P1IE            ;致能p1.7~p1.4 中斷
+             CMP.B     #ENTER,KEY_VAL
+             JEQ       print_battery_start
+             CMP.B     #ESC,KEY_VAL
+             JEQ       battery_rep1
+             
+             CMP.B             #19,&RXBUF0
+             jne            battery_print_end
+             ;bit.b           #nopaper,P5IN
+             ;jnz            battery_print_end
+             
+              CMP.B     #01,nopaper_val_1
+              JEQ        battery_print_end
+              call           #disnopaper
+              
+             CMP.B             #19,&RXBUF0
+             jne            battery_print_re_display_battery             
+            ; bit.b           #nopaper,P5IN
+             ; jnz            battery_print_re_display_battery
+             JMP      battery_print_end
+
+
+;******************************************************************
+
+;**********************************************
+EN
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          MOV.B     #00,PATTERN_disable
+           ; call        #LCM_BLACK_CS1
+           ;call        #LCM_BLACK_CS2
+
+          MOV.B     #3,PATTERN
+EN_L1
+
+            call        #DISPLAY2
+           call     #detect_connect
+          MOV       EN_KEY_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  R13,BCD_LSB
+          ;CALL      #BCD_SWPB
+          call      #DISPLAY3
+          call      #UNIT_EN
+          CMP.B     #ESC,KEY_VAL
+          JEQ       battery_rep1
+
+          CMP.B     #ENTER,KEY_VAL
+          JEQ       EN_L2
+          bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+          JMP       EN_L1
+          
+EN_L2        call      #TEST
+              call      #re_display_battery
+              
+               ;call      #UNIT_EN_2
+               mov.b     #00h,KEY_VAL
+EN_END
+                MOV.B     #1,PATTERN_disable
+                bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+
+                CMP.B     #ENTER,KEY_VAL
+                JEQ       print_battery_start
+
+                CMP.B     #ESC,KEY_VAL
+                JNE       EN_END
+                jmp       CCA_END
+
+
+;******************************************************************
+
+;**********************************************
+DIN
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          MOV.B     #00,PATTERN_disable
+            ;call        #LCM_BLACK_CS1
+           ;call        #LCM_BLACK_CS2
+
+          MOV.B     #4,PATTERN
+DIN_L1
+
+            call        #DISPLAY2
+           call     #detect_connect
+          MOV       DIN_KEY_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  R13,BCD_LSB
+          ;CALL      #BCD_SWPB
+          call      #DISPLAY3
+          call      #UNIT_DIN
+          CMP.B     #ESC,KEY_VAL
+          JEQ       battery_rep1
+
+          CMP.B     #ENTER,KEY_VAL
+          JEQ       DIN_L2
+          bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+          JMP       DIN_L1
+          
+DIN_L2        call      #TEST
+              call      #re_display_battery
+              
+               ;call      #UNIT_DIN_2
+               mov.b     #00h,KEY_VAL
+DIN_END
+                MOV.B     #1,PATTERN_disable
+                bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+                CMP.B     #ENTER,KEY_VAL
+                JEQ       print_battery_start
+
+                CMP.B     #ESC,KEY_VAL
+                JNE       DIN_END
+                jmp       CCA_END
+
+
+;******************************************************************
+
+;**********************************************
+IEC
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          MOV.B     #00,PATTERN_disable
+            ;call        #LCM_BLACK_CS1
+           ;call        #LCM_BLACK_CS2
+
+          MOV.B     #5,PATTERN
+IEC_L1
+         call       #DISPLAY2
+          call      #detect_connect
+          MOV       IEC_KEY_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  R13,BCD_LSB
+          ;CALL      #BCD_SWPB
+          call      #DISPLAY3
+          call      #UNIT_IEC
+          CMP.B     #ESC,KEY_VAL
+          JEQ       battery_rep1
+
+          CMP.B     #ENTER,KEY_VAL
+          JEQ       IEC_L2
+          bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+          JMP       IEC_L1
+          
+IEC_L2        call      #TEST
+              call      #re_display_battery
+              
+               ;call      #UNIT_IEC_2
+               mov.b     #00h,KEY_VAL
+IEC_END
+                MOV.B     #1,PATTERN_disable
+                bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+                CMP.B     #ENTER,KEY_VAL
+                JEQ       print_battery_start
+
+                 CMP.B     #ESC,KEY_VAL
+                JNE       IEC_END
+                jmp       CCA_END
+
+
+;******************************************************************
+;JIS
+;**********************************************
+JIS1
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          MOV.B     #00,PATTERN_disable
+
+          MOV.B     #6,PATTERN
+JIS1_L1
+            CALL     #DISPLAY5
+
+          call     #detect_connect
+           bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+          CMP.B     #ESC,KEY_VAL
+          JNE       JIS_L2
+          JMP       battery_rep1
+JIS_L2
+
+          CMP.B     #ENTER,KEY_VAL
+          JEQ       CCA
+          JMP       JIS1_L1
+
+;******************************************************************
+;未知規格
+;**********************************************
+JIS3
+           MOV       #00,KEY_VAL
+           MOV.B     #00,PATTERN_disable
+            MOV.B     #7,PATTERN
+            mov     #1,low_voltage_index
+            call      #CCA_L2                             ;jmp cca共用處理
+            
+
+
+;******************************************************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;*********************************** 
+battery_rep1
+          cmp        #3,VOLTAGE12VOR24V   
+          jeq        battery_rep1_1
+          cmp        #4,VOLTAGE12VOR24V   
+          jeq        battery_rep1_1
+          
+          mov       #battery,pc
+battery_rep1_1
+          mov       #SELECT_12V_24V,pc
+         
+
+          

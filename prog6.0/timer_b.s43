@@ -1,0 +1,52 @@
+;******************************************************************************
+#define     poweron         (BIT5)
+#define     backlight         (BIT7)
+#define     brake         (BIT2)
+#define     backdisable         (BIT1)
+;******************************************************************************
+baklight_power_off
+            mov.w	#4,power_off	;buzzer Ω计 300
+            mov.w	#360,backlight_con		;buzzer Ω计 300
+            mov.w   #CCIE,&TBCCTL0          ; CCR0 interrupt enabled
+            mov.w   #65535,&TBCCR0          ;#604
+            mov.w   #TBSSEL_2+MC_1,&TBCTL   ; SMCLK, upmode                     					
+            ret
+;------------------------------------------------------------------------------
+TB0_ISR;    Toggle P1.0
+;------------------------------------------------------------------------------
+                ;xor.b     #brake,&P3OUT 
+;*************************************************************************  
+;
+;*************************************************************************
+                bit.b       #backdisable,P5IN                            
+                jz         t_e_A_off_bk_en
+                bis.b     #backlight,&P5OUT         ;set lcm_backlight 
+            mov.w	#4,power_off	;buzzer Ω计 300
+            mov.w	#360,backlight_con	                
+                jmp        t_e_A                
+t_e_A_off_bk_en                                  
+;*************************************************************************  
+                dec     backlight_con
+                jnz     t_e_A
+		mov.w	#360,backlight_con		;restore buzzer Ω计 300                           
+		bic.b     #backlight,&P5OUT         ;set lcm_backlight
+;*************************************************************************  
+;焚óパ代刚籔厩策家Α璉OFF抖獽铬糷
+;*************************************************************************  
+                 ;CMP.B       #11,PATTERN
+                ;JNE         no_pattern_11
+                 ;MOV.B     #ESC,KEY_VAL
+;no_pattern_11
+                 ;CMP.B       #10,PATTERN
+                ;JNE         no_pattern_10
+                 ;MOV.B     #ESC,KEY_VAL
+;no_pattern_10
+;*************************************************************************  
+                dec     power_off
+                jnz     t_e_A               
+                bic.b     #poweron,&P5OUT             ;set power OFF
+t_e_A
+              reti
+
+;------------------------------------------------------------------------------
+

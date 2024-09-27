@@ -1,0 +1,1162 @@
+;************************************************
+;print
+;************************************************
+;#define     POINTER R4
+;#define     OFFSET  R5
+;LF          EQU     0ah                     ; ASCII Line Feed
+;CR          EQU     0dh                     ; ASCII Carriage Return
+;ESC_        EQU     1bh                     ; ASCII ESC+
+
+         
+;********************************************
+print
+     IF PRINT=1
+      ;ret			//vat570
+     ;ELSE
+     ;jmp  print_have                  
+     ;ENDIF
+ 
+             ;bit.b           #noprint,P3IN
+             ;jnz             print_have  
+             ;call     #LCM_INITIAL
+              ;call            #disnoprint
+              ;MOV.B     #01,nopaper_val_1           ;nopaper  除能
+             
+;print_no_print             
+             ;bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷               
+             ;CMP.B     #ESC,KEY_VAL
+             ;jeq        print_cancel                        
+             ;  jmp             print_no_print               
+           
+print_have                
+             CALL		#delay_500ms
+             CALL		#SetupP3
+             
+print_con  
+
+            CMP.B             #19,&RXBUF0                 ;19 沒有紙 CODE
+            JNE               print_data  
+            
+             ;bit.b           #nopaper,P5IN
+             ;jnz             print_data
+             ;call            #BEEP
+             call            #disnopaper
+             MOV.B     #01,nopaper_val_1
+print_con_com             
+             bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷               
+             CMP.B     #ESC,KEY_VAL
+             jeq        print_cancel
+            CMP.B             #19,&RXBUF0
+            JNE               print_data  
+            ; bit.b           #nopaper,P5IN
+             ;jnz             print_data                          
+             jmp             print_con_com 
+print_cancel 
+              ;MOV.B     #00,nopaper_val
+             ret
+print_data
+;************************************************
+;  語言選擇 1bh,52h  n: 0到13 0:英
+;*****************************************
+            ;mov.b     #1BH,POINTER
+            ;call      #print_constant
+
+            ;mov.b     #52H,POINTER
+            ;call      #print_constant
+            
+            ;mov.b     #0,POINTER
+            ;call      #print_constant
+;-----------------------------------------------------
+
+            ;MOV.B     #00,nopaper_val
+            mov.b     #ESC_,POINTER
+            call      #print_constant
+
+            mov.b     #40h,POINTER
+            call      #print_constant
+            
+            mov.b     #ESC_,POINTER
+            call      #print_constant
+
+            mov.b     #48h,POINTER
+            call      #print_constant
+
+            mov.b     #01h,POINTER
+            call      #print_constant
+                                 
+            mov.b     #ESC_,POINTER                     ;行間間距
+            call      #print_constant
+            mov.b     #33h,POINTER                      ;行間間距                
+            call      #print_constant           
+            mov.b     #038h,POINTER                     ;行間間距  38
+            call      #print_constant
+
+            MOV       #PRINT_ITEM_TABLE,R4
+            MOV.B     ITEM,R5
+            DEC       R5
+            RLA       R5
+            ADD       R5,R4
+            BR        R4
+
+PRINT_ITEM_TABLE
+           JMP        print_battery
+           JMP        print_generator
+           JMP        print_slv_repeat
+
+;***********************************************************
+;電平測試結果 T or E .............?
+;*******************************************************
+print_battery
+                CMP.B       #01,ENGLISH_TAIWAN
+                JNE       print_battery_T
+                
+ ;***********************************************************
+;電平測試結果PRINT 輸入規格........英文
+;******************************************************
+print_battery_E
+               mov.b      #16,OFFSET
+               mov        #String_SPEC_E,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_1_E
+
+              call        #print_cca_en_din_iec_key_val
+
+               call       #print_cca_en_din_iec_unit
+print_not_spec_1_E
+              call      #print_sp_1_line
+       
+;-----------------------------------------------------
+;PRINT 測試結果  良好 OR BAD .....  第2行  英文
+;----------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_RESULTS_E,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_2_E
+
+                call       #print_good_bad_e
+print_not_spec_2_E
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT VOLTAGE ADC2         第3行   英文
+;-------------------------------------------
+          MOV       adc3,R12
+          mov.b       #01,dot_1
+          call        #print_number_0_9
+
+           mov.b      #2,OFFSET
+               mov        #String_V,POINTER
+               call       #print_word_table
+
+               mov.b      #9,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+
+          call         #print_cca_en_din_iec_val
+
+           call       #print_cca_en_din_iec_unit
+
+            call      #print_sp_1_line
+;-------------------------------------------
+;PRINT 內阻    ˇ3.3 mΩ        第4行    英文
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_INTR_E,POINTER
+               call       #print_word_table
+
+               call        #print_res
+
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT 壽命  XXX % or 需充電 or cell bad   第5行   英文
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_LIFE_E,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_3_E
+
+               call        #print_charge_cellbad_e
+print_not_spec_3_E
+              call      #print_sp_1_line
+              
+              call      #print_soc_square_com
+                
+               ret     
+               
+ ;***********************************************************
+;電平測試結果 T or E .............?
+;*******************************************************
+print_battery_T
+                CMP.B       #02,ENGLISH_TAIWAN
+                JNE       print_battery_J
+                
+ ;***********************************************************                                                                                              
+;*********************************************************** 
+;電平PRINT 輸入規格    520 CCA 中文 	第1行
+;*******************************************************
+                            
+               ;mov.b      #18,OFFSET                           ;中文表頭
+               ;mov        #String_BATTREPORT_T,POINTER
+               ;call       #print_word_table   
+            ;call      #print_sp_2_line           
+
+               mov.b      #16,OFFSET
+               mov        #String_SPEC_T,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_1_t
+
+              call        #print_cca_en_din_iec_key_val
+
+               call       #print_cca_en_din_iec_unit
+print_not_spec_1_t
+              call      #print_sp_1_line
+
+;-----------------------------------------------------
+;PRINT 測試結果  良好 OR BAD .....  第2行
+;----------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_RESULTS_T,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_2_t
+
+                call       #print_good_bad_t
+print_not_spec_2_t
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT VOLTAGE ADC2         第3行
+;-------------------------------------------
+          MOV       adc3,R12
+          mov.b       #01,dot_1
+          call        #print_number_0_9
+
+           mov.b      #2,OFFSET
+               mov        #String_V,POINTER
+               call       #print_word_table
+
+               mov.b      #9,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+
+          call         #print_cca_en_din_iec_val
+
+
+           call       #print_cca_en_din_iec_unit
+
+            call      #print_sp_1_line
+;-------------------------------------------
+;PRINT 內阻    ˇ3.3 mΩ        第4行
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_INTR_T,POINTER
+               call       #print_word_table
+
+               call        #print_res
+
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT 壽命  XXX % or 需充電 or cell bad   第5行
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_LIFE_T,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_3_t
+
+               call        #print_charge_cellbad_t
+print_not_spec_3_t
+              call      #print_sp_1_line   
+              
+              call      #print_soc_square_com
+              
+               ret
+;***********************************************************
+;電平PRINT 輸入規格    520 CCA 日文 	第1行
+;*******************************************************
+print_battery_J
+                CMP.B       #03,ENGLISH_TAIWAN
+                JNE       print_battery_K
+
+               mov.b      #16,OFFSET
+               mov        #String_SPEC_J,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_1_J
+
+              call        #print_cca_en_din_iec_key_val
+
+               call       #print_cca_en_din_iec_unit
+print_not_spec_1_J
+              call      #print_sp_1_line
+
+;-----------------------------------------------------
+;PRINT 測試結果  良好 OR BAD .....  第2行
+;----------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_RESULTS_J,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_2_J
+
+                call       #print_good_bad_J
+print_not_spec_2_J
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT VOLTAGE ADC2         第3行
+;-------------------------------------------
+          MOV       adc3,R12
+          mov.b       #01,dot_1
+          call        #print_number_0_9
+
+           mov.b      #2,OFFSET
+               mov        #String_V,POINTER
+               call       #print_word_table
+
+               mov.b      #9,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+
+          call         #print_cca_en_din_iec_val
+
+
+           call       #print_cca_en_din_iec_unit
+
+            call      #print_sp_1_line
+;-------------------------------------------
+;PRINT 內阻    ˇ3.3 mΩ        第4行
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_INTR_J,POINTER
+               call       #print_word_table
+
+               call        #print_res
+
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT 壽命  XXX % or 需充電 or cell bad   第5行
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_LIFE_J,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_3_J
+
+               call        #print_charge_cellbad_J
+print_not_spec_3_J
+              call      #print_sp_1_line
+
+              call      #print_soc_square_com
+               ret
+                
+ ;***********************************************************                                                                                              
+;***********************************************************
+; 印  logo  印 電平PRINT 輸入規格    520 CCA 中文 	第1行
+;*******************************************************
+print_battery_K
+
+               mov.b      #28,OFFSET                          ;DT logo
+               mov        #String_dt_logo,POINTER
+               call       #print_word_table
+               
+              mov.b     #ESC_,POINTER                      ;恢復字大小
+             call      #print_constant                    ;恢復字大小 
+
+              mov.b     #40h,POINTER                        ;恢復字大小
+              call      #print_constant                     ;恢復字大小 
+                            
+               mov.b      #22,OFFSET
+               mov        #String_BATTREPORT_K,POINTER
+               call       #print_word_table   
+            call      #print_sp_2_line
+            
+            mov.b     #ESC_,POINTER                     ;行間間距
+            call      #print_constant
+            mov.b     #33h,POINTER                      ;行間間距                
+            call      #print_constant           
+            mov.b     #038h,POINTER                     ;行間間距  38
+            call      #print_constant 
+                                             
+                
+               mov.b      #16,OFFSET
+               mov        #String_SPEC_K,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_1_K
+
+              call        #print_cca_en_din_iec_key_val
+
+               call       #print_cca_en_din_iec_unit
+print_not_spec_1_K
+              call      #print_sp_1_line
+
+;-----------------------------------------------------
+;PRINT 測試結果  良好 OR BAD .....  第2行
+;----------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_RESULTS_K,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_2_K
+
+                call       #print_good_bad_K
+print_not_spec_2_K
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT VOLTAGE ADC2         第3行
+;-------------------------------------------
+          MOV       adc3,R12
+          mov.b       #01,dot_1
+          call        #print_number_0_9
+
+           mov.b      #2,OFFSET
+               mov        #String_V,POINTER
+               call       #print_word_table
+
+               mov.b      #9,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+
+          call         #print_cca_en_din_iec_val
+
+
+           call       #print_cca_en_din_iec_unit
+
+            call      #print_sp_1_line
+;-------------------------------------------
+;PRINT 內阻    ˇ3.3 mΩ        第4行
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_INTR_K,POINTER
+               call       #print_word_table
+
+               call        #print_res
+
+              call      #print_sp_1_line
+
+;-------------------------------------------
+;PRINT 壽命  XXX % or 需充電 or cell bad   第5行
+;-------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_LIFE_K,POINTER
+               call       #print_word_table
+
+               cmp.b      #7,PATTERN
+               jeq        print_not_spec_3_K
+
+               call        #print_charge_cellbad_K
+print_not_spec_3_K
+              call      #print_sp_1_line
+              
+              call      #print_soc_square_com
+              
+              
+               ret
+                              
+;pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp 
+;印飽電狀態方塊 與 SOC
+;pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+print_soc_square_com
+               call            #print_square_caculate_life
+               call            #print_square_loop
+               call      #print_sp_1_line
+               
+                mov.b      #4,OFFSET
+               mov        #String_soc_state_E,POINTER      
+               call       #print_word_table
+              call      #print_sp_1_line 
+               
+               call           #print_square_caculate_soc
+               call            #print_square_loop
+                call      #print_sp_2_line
+                
+               call         #print_Customer_name              
+              
+;-------------------------------------------
+;PRINT 結束跳5行
+;-------------------------------------------
+              call            #print_over_3_line
+              
+               ;mov.b     #ESC_,POINTER
+              ; call      #print_constant
+               ;mov.b     #64h,POINTER
+               ;call      #print_constant
+               ;mov.b     #060h,POINTER
+               ;call      #print_constant
+              
+               ret   
+               
+                    
+;rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr               
+print_slv_repeat                                  ;repeat print_slv
+                 jmp    print_slv_repeat_1
+;rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr                    
+               
+;***********************************************************
+;發電機測試結果  3000RPM......2000RPM
+;******************************************************
+;***********************************************************
+; 發電機測試結果 T or E   .............?
+;***********************************************************
+print_generator
+                CMP.B       #01,ENGLISH_TAIWAN
+                JNE       print_generator_T
+
+;***********************************************************
+;發電機測試結果  3000RPM......2000RPM.......英文
+;***********************************************************
+print_generator_E
+
+                call          #PRINT_e_number_COM
+              
+               ret
+
+;***********************************************************
+;發電機測試結果  3000RPM......2000RPM.......中文
+;***********************************************************
+print_generator_T
+                CMP.B       #02,ENGLISH_TAIWAN
+                JNE       print_generator_J
+                
+                            
+               ;mov.b      #18,OFFSET                             ;中文表頭
+               ;mov        #String_CHARGREPORT_T,POINTER
+               ;call       #print_word_table   
+            ;call      #print_sp_2_line
+
+            call          #PRINT_e_number_COM
+
+               
+               
+               ret       
+               
+;***********************************************************
+;發電機測試結果  3000RPM......2000RPM.......日文
+;***********************************************************
+print_generator_J
+                CMP.B       #03,ENGLISH_TAIWAN
+                JNE       print_generator_K
+                
+                
+                call          #PRINT_e_number_COM
+
+               
+               ret 
+               
+               
+;rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr               
+print_slv_repeat_1                                  ;repeat print_slv
+                 jmp    print_slv
+;rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr                
+               
+;***********************************************************
+;發電機測試結果  3000RPM......2000RPM.......韓文
+;***********************************************************
+print_generator_K
+
+               mov.b      #28,OFFSET                          ;DT logo
+               mov        #String_dt_logo,POINTER
+               call       #print_word_table
+               
+              mov.b     #ESC_,POINTER                      ;恢復字大小
+              call      #print_constant                    ;恢復字大小 
+
+              mov.b     #40h,POINTER                        ;恢復字大小
+              call      #print_constant                     ;恢復字大小 
+                            
+               mov.b      #22,OFFSET
+               mov        #String_CHARGREPORT_K,POINTER
+               call       #print_word_table   
+            call      #print_sp_2_line
+            
+            mov.b     #ESC_,POINTER                     ;行間間距
+            call      #print_constant
+            mov.b     #33h,POINTER                      ;行間間距                
+            call      #print_constant           
+            mov.b     #038h,POINTER                     ;行間間距  38
+            call      #print_constant 
+            
+            call          #PRINT_e_number_COM
+         
+               
+               ret    
+               
+;----------------------------------------------------
+; 發電機各種語言英數共用部分 印 rpm3000 rpm2000  各 COM 共用
+;---------------------------------------------------                 
+PRINT_e_number_COM                 
+                
+                call       #PRINT_3000_1500_COM           ;顯示3000rpm or 1500rpm                           
+               call       #print_word_table
+
+              MOV       r3000_now_v,R12
+               mov.b       #01,dot_1
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+                mov.b     #4,OFFSET
+               mov        #String_MAX,POINTER
+               call       #print_word_table
+
+              MOV         r3000_max_v,R12
+              call        #print_number_0_9
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+               mov.b      #3,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+              
+              call        #PRINT_150v_300v_COM               ;顯示<15v or <30v                           
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+                mov.b     #4,OFFSET
+               mov        #String_MIN,POINTER
+               call       #print_word_table
+
+              MOV         r3000_min_v,R12
+              call        #print_number_0_9
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+               mov.b      #3,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+
+               call       #PRINT_133v_266v_COM                ;顯示>13.3v or 26.6
+              call       #print_word_table
+
+              call      #print_sp_1_line
+              
+               call           #print_square_caculate_generator_3000
+               call            #print_square_loop
+                call      #print_sp_1_line              
+              
+;---------------------------------------------------
+;print 2000 rpm   start
+;---------------------------------------------------
+                call        #PRINT_2000_1000_COM                  ;顯示2000rpm or 1000rpm  
+               call       #print_word_table
+
+              MOV       r2000_now_v,R12
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+                mov.b     #4,OFFSET
+               mov        #String_MAX,POINTER
+               call       #print_word_table
+
+              MOV         r2000_max_v,R12
+              call        #print_number_0_9
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+               mov.b      #3,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+
+              call           #PRINT_135v_270v_COM                  ;顯示>13.5v or 27v
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+                mov.b     #4,OFFSET
+               mov        #String_MIN,POINTER
+               call       #print_word_table
+
+              MOV         r2000_min_v,R12
+              call        #print_number_0_9
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+               mov.b      #3,OFFSET                                     ;最大不可超過10
+               mov        #String_sp1_10,POINTER                        ;最大不可超過10
+               call       #print_word_table
+               
+               call           #PRINT_125v_250v_COM                  ;顯示>12.5v or 25v
+              call       #print_word_table
+
+              call      #print_sp_1_line
+              
+              
+               call           #print_square_caculate_generator_2000
+               call            #print_square_loop
+               call      #print_sp_2_line
+             
+                call         #print_Customer_name              
+
+;-------------------------------------------
+;PRINT 結束跳5行                英文
+;-------------------------------------------
+              call            #print_over_3_line
+
+               ;mov.b     #ESC_,POINTER
+              ; call      #print_constant
+               ;mov.b     #64h,POINTER
+               ;call      #print_constant
+               ;mov.b     #060h,POINTER
+               ;call      #print_constant
+               
+               ret                       
+                               
+;----------------------------------------------------
+; 印 rpm3000 (12v) rpm1500 (24v)  > 15.0V (12V) > 30.0V (24V)  > 13.3V (12V) > 26.6V (24V)  COM 共用
+;---------------------------------------------------                
+PRINT_3000_1500_COM 
+                mov.b      #16,OFFSET
+                cmp        #02,VOLTAGE12VOR24V
+                jeq        print_24v_1500 
+                
+                mov        #String_3000RPM,POINTER         
+                jmp        print_12v_3000 
+print_24v_1500                 
+                mov        #String_1500RPM,POINTER
+print_12v_3000               
+                ret
+;---------------------------------------------------                  
+PRINT_150v_300v_COM  
+                  mov.b       #10,OFFSET
+                 cmp        #02,VOLTAGE12VOR24V
+                jeq        PRINT_300v 
+                
+                mov        #String_150V,POINTER
+                jmp        PRINT_150v 
+PRINT_300v                
+                mov        #String_300V,POINTER
+PRINT_150v                              
+                ret
+;---------------------------------------------------                  
+PRINT_133v_266v_COM   
+                  mov.b       #10,OFFSET
+                 cmp        #02,VOLTAGE12VOR24V
+                jeq        PRINT_266v 
+                
+              mov        #String_133V,POINTER
+              jmp           PRINT_133v
+ 
+PRINT_266v                
+                mov        #String_266V,POINTER
+PRINT_133v                              
+                ret
+;---------------------------------------------------   
+PRINT_2000_1000_COM
+                    mov.b      #16,OFFSET
+                cmp        #02,VOLTAGE12VOR24V
+                jeq        PRINT_1000rpm
+                    
+               mov        #String_2000RPM,POINTER 
+                jmp       PRINT_2000rpm               
+PRINT_1000rpm                
+               mov        #String_1000RPM,POINTER
+PRINT_2000rpm                              
+                ret               
+;---------------------------------------------------                                       
+PRINT_135v_270v_COM
+                    mov.b      #10,OFFSET
+                cmp        #02,VOLTAGE12VOR24V
+                jeq        PRINT_270v
+                
+                mov        #String_135V,POINTER
+                jmp       PRINT_135v               
+PRINT_270v                
+               mov        #String_270V,POINTER
+PRINT_135v                              
+                ret               
+;---------------------------------------------------             
+PRINT_125v_250v_COM
+                    mov.b      #10,OFFSET
+                cmp        #02,VOLTAGE12VOR24V
+                jeq        PRINT_250v
+                
+                mov        #String_125V,POINTER
+                jmp       PRINT_125v               
+PRINT_250v                
+               mov        #String_250V,POINTER
+PRINT_125v                              
+                ret               
+;---------------------------------------------------            
+                    
+;***********************************************************
+;啟動測試結果   T or E   .............?
+;***********************************************************
+print_slv
+                CMP.B       #01,ENGLISH_TAIWAN
+                JNE       print_slv_T
+
+;***********************************************************
+;啟動測試結果  靜態電壓........英文
+;***********************************************************
+print_slv_E
+                mov.b      #16,OFFSET
+               mov        #String_NORMALV_E,POINTER
+               call       #print_word_table
+
+              MOV         slv_now_v,R12
+               mov.b       #01,dot_1
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+;----------------------------------------------------
+;啟動電壓....英文
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_E,POINTER
+               call       #print_word_table
+
+              MOV         SLV ,R12
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+;----------------------------------------------------
+;啟動電壓 > 9.2V....英文
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_E,POINTER
+               call       #print_word_table
+
+              call       #PRINT_9V2_15V5_COM
+               
+                ret
+
+;***********************************************************
+;啟動測試結果  靜態電壓........中文
+;***********************************************************
+print_slv_T
+                CMP.B       #02,ENGLISH_TAIWAN
+                JNE       print_slv_J
+;***********************************************************
+               ;mov.b      #18,OFFSET                                     ;中文表頭
+               ;mov        #String_slv_T,POINTER
+               ;call       #print_word_table   
+            ;call      #print_sp_2_line
+
+                mov.b      #16,OFFSET
+               mov        #String_NORMALV_T,POINTER
+               call       #print_word_table
+
+              MOV         slv_now_v,R12
+               mov.b       #01,dot_1
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+;----------------------------------------------------
+;啟動電壓
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_T,POINTER
+               call       #print_word_table
+
+              MOV         SLV ,R12
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+;----------------------------------------------------
+;啟動電壓 > 9.2V
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_T,POINTER
+               call       #print_word_table
+               
+               call       #PRINT_9V2_15V5_COM            
+                
+                ret
+
+
+;***********************************************************
+;啟動測試結果  靜態電壓........日文
+;***********************************************************
+print_slv_J
+                CMP.B       #03,ENGLISH_TAIWAN
+                JNE       print_slv_K
+;***********************************************************
+
+                mov.b      #16,OFFSET
+               mov        #String_NORMALV_J,POINTER
+               call       #print_word_table
+
+              MOV         slv_now_v,R12
+               mov.b       #01,dot_1
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+;----------------------------------------------------
+;啟動電壓
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_J,POINTER
+               call       #print_word_table
+
+              MOV         SLV ,R12
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+;----------------------------------------------------
+;啟動電壓 > 9.2V
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_J,POINTER
+               call       #print_word_table
+               
+               call       #PRINT_9V2_15V5_COM
+
+                ret
+
+;***********************************************************
+;啟動測試結果  靜態電壓........韓文
+;***********************************************************
+print_slv_K
+               mov.b      #28,OFFSET                          ;DT logo
+               mov        #String_dt_logo,POINTER
+               call       #print_word_table
+               
+              mov.b     #ESC_,POINTER                      ;恢復字大小
+              call      #print_constant                    ;恢復字大小 
+
+              mov.b     #40h,POINTER                        ;恢復字大小
+              call      #print_constant                     ;恢復字大小 
+                            
+               mov.b      #22,OFFSET
+               mov        #String_slv_K,POINTER
+               call       #print_word_table   
+            call      #print_sp_2_line
+            
+            mov.b     #ESC_,POINTER                     ;行間間距
+            call      #print_constant
+            mov.b     #33h,POINTER                      ;行間間距                
+            call      #print_constant           
+            mov.b     #038h,POINTER                     ;行間間距  38
+            call      #print_constant 
+
+
+                mov.b      #16,OFFSET
+               mov        #String_NORMALV_K,POINTER
+               call       #print_word_table
+
+              MOV         slv_now_v,R12
+               mov.b       #01,dot_1
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+;----------------------------------------------------
+;啟動電壓
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_K,POINTER
+               call       #print_word_table
+
+              MOV         SLV,R12
+              call        #print_number_0_9
+
+              mov.b      #2,OFFSET
+              mov        #String_V,POINTER
+              call       #print_word_table
+
+              call      #print_sp_1_line
+
+;----------------------------------------------------
+;啟動電壓 > 9.2V
+;---------------------------------------------------
+                mov.b      #16,OFFSET
+               mov        #String_CRANKV_K,POINTER
+               call       #print_word_table
+               
+               call       #PRINT_9V2_15V5_COM
+                
+                ret
+                      
+                             
+;----------------------------------------------------
+;  印 > 9.2V (12V) > 15.5V (24V) COM 共用
+;---------------------------------------------------
+PRINT_9V2_15V5_COM
+              
+              cmp        #02,VOLTAGE12VOR24V
+              jeq        String_24V 
+              
+              mov.b      #7,OFFSET
+              mov        #String_92V,POINTER
+              jmp       String_pass
+String_24V
+              mov.b      #8,OFFSET
+              mov        #String_155V,POINTER
+String_pass              
+              call       #print_word_table
+
+              call      #print_sp_1_line
+              
+                call           #print_square_caculate_slv
+               call            #print_square_loop
+               call      #print_sp_2_line
+            
+                call         #print_Customer_name               
+              
+;-------------------------------------------
+;PRINT 結束跳5行           ...中文
+;-------------------------------------------
+              call            #print_over_3_line
+
+               ;mov.b     #ESC_,POINTER
+              ; call      #print_constant
+               ;mov.b     #64h,POINTER
+               ;call      #print_constant
+               ;mov.b     #060h,POINTER
+               ;call      #print_constant
+                
+                ret    
+                
+;pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+;print 客戶名技師    T or E 
+;pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  
+print_Customer_name
+
+                CMP.B       #01,ENGLISH_TAIWAN
+                JNE        print_Customer_name_T
+;***********************************************************
+;print 客戶名技師........英文
+;******************************************************
+print_Customer_name_E
+
+               mov.b      #9,OFFSET
+               mov        #String_Customer_name_E,POINTER
+               call       #print_word_table
+
+               call      #print_sp_2_line
+               
+               mov.b      #11,OFFSET
+               mov        #String_Technician_name_E,POINTER
+               call       #print_word_table
+               
+               ret
+               
+;***********************************************************
+;print 客戶名技師........繁中文
+;******************************************************
+print_Customer_name_T
+
+                CMP.B       #02,ENGLISH_TAIWAN
+                JNE        print_Customer_name_J
+;***********************************************************
+
+               mov.b      #7,OFFSET
+               mov        #String_Customer_name_T,POINTER
+               call       #print_word_table
+
+               call      #print_sp_2_line
+               
+               mov.b      #5,OFFSET
+               mov        #String_Technician_name_T,POINTER
+               call       #print_word_table
+               
+               ret
+               
+ ;***********************************************************
+;print 客戶名技師.......日文
+;******************************************************
+print_Customer_name_J
+
+                CMP.B       #03,ENGLISH_TAIWAN
+                JNE        print_Customer_name_K
+;***********************************************************
+
+               mov.b      #7,OFFSET
+               mov        #String_Customer_name_J,POINTER
+               call       #print_word_table
+
+               call      #print_sp_2_line
+               
+               mov.b      #7,OFFSET
+               mov        #String_Technician_name_J,POINTER
+               call       #print_word_table
+               
+               ret
+               
+;***********************************************************
+;print 客戶名技師.......韓文
+;****************************************************** 
+print_Customer_name_K
+
+               mov.b      #8,OFFSET
+               mov        #String_Customer_name_K,POINTER
+               call       #print_word_table
+
+               call      #print_sp_2_line
+               
+               mov.b      #8,OFFSET
+               mov        #String_Technician_name_K,POINTER
+               call       #print_word_table
+               
+               else
+               ret 
+               endif 
+                               
+               
+                
+                
+                

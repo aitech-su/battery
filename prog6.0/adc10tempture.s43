@@ -1,0 +1,21 @@
+;***********************************
+; call      #adc_10   cpu ¤º³¡·Å«×
+;***********************************
+adc10_tempture
+                     BIC.B     #OUT1_BIT_OUT
+                     
+                        call      #adc_10_avg     
+                        mov       adc_,adc10          ; Move result
+
+                      cmp.b     #01,testmode_y
+                      jne       no_dis_adc10
+
+             ;MOV       adc10,R12
+            ;call      #BIN2BCD4
+            ;call      #DIS_ADC3_rate 
+        
+no_dis_adc10
+         cmp       #cputempture_work,adc10
+         jl        adc10_tempture     
+         BIS.B     #OUT1_BIT_OUT
+         ret

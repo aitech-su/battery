@@ -1,0 +1,222 @@
+;************************************************************
+; testmode
+;************************************************************
+;#define     lcm_reset         (BIT3)
+;#define     backlight         (BIT7)
+;#define     testmode_y      03b6h
+;#define    TESTCOUNT       0350h+10	
+;#define    CCA_VAL       0350h+12	
+;#define    auto_rang        03ACh
+;#define    ADC0_H       0350h+2
+;#define    ADC0_M       0350h+4 
+;#define    ADC0_L       0350h+6   
+;******************************************************
+testmode
+            MOV.B     #01,testmode_y
+            mov        #01,VOLTAGE12VOR24V      ;1=12V 2=24V  
+            bis.b      #lcm_reset_BIT_OUT         ;set lcm/reset
+            mov.b      #2,auto_count   
+            call     #LCM_INITIAL
+            bis.b     #backlight_BIT_OUT         ;set lcm_backlight
+            mov.b     #10,adc3_count
+testmode_1
+;***********************************
+; call      #adc_10   cpu 內部溫度 大於 1900 才進入測試 cputempture_work
+;***********************************
+           ;call     #adc10_tempture     
+
+;***********************************
+; call      #adc_2
+;***********************************
+                        call      #adc_2_avg     
+                        mov       adc_,adc2          ; Move result
+
+           MOV       adc2,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+        ;CALL      #BCD_SWPB
+         call      #DIS_ADC3
+                   
+;***********************************
+; call      #adc_3
+;***********************
+                   ;mov      #16,TESTCOUNT
+                   ;mov      #0,adc3                    
+;testmode_4                        
+                        ;call      #adc_3
+;testIFG_3_testmode      bit       #BIT0,&ADC12IFG         ; Conversion done?
+                        ;jnz       testIFG_3_testmode               ; No, test again
+                        ;add       adc_,adc3
+                        ;dec       TESTCOUNT
+                        ;jnz       testmode_4
+                        ;rra       adc3
+                        ;rra       adc3
+                        ;rra       adc3
+                        ;rra       adc3
+                        ;and       #0fffh,adc3                 ;將自己傳給自己 MSB-->MSB RRA 4次覆蓋SET 0                                             
+           ;MOV       adc3,R12
+          ;call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+        ;CALL      #BCD_SWPB
+         ;call      #DIS_ADC3         
+                  
+;***********************************
+; call      #CCA
+;***********************         
+        call      #delay_500ms
+
+          MOV     #00,auto_rang 
+         MOV.B     #01,testmode_y
+         
+         CALL           #test_mode
+         
+              MOV       CCA_VAL,CCA_VAL_temp
+              MOV       CCA_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+             ;CALL      #BCD_SWPB
+             call      #DIS_CCA
+               call      #UNIT_CCA_2  
+ 
+           call         #redis_MR  
+           
+;***********************************
+; call      #adc_1
+;***********************                  
+                        ;call      #adc_1_avg      
+                        ;mov       adc_,adc1          ; Move result
+
+           MOV       adc1,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+        ;CALL      #BCD_SWPB
+         call      #DIS_ADC1           
+                     
+;***********************************
+; call      #adc_3
+;*********************** 
+adc3_drift
+                cmp.b     #10,adc3_count      
+                jeq      adc3_drift_time_10 
+                
+adc3_drift_100                 
+                  mov.b     #100,adc3_count
+adc3_drift_time_10                 
+                    call      #adc_3_avg    
+                    mov       adc_,adc3          ; Move result
+
+           MOV       adc3,R12
+           mov       adc3,adc3_VAL_temp
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+        ;CALL      #BCD_SWPB
+         call      #DIS_ADC2   
+         
+            jmp        testmode_1     ;取消不穩測試段將此行保留
+;---------------------------------------
+; adc3 不穩測試段
+;-----------------------------------------         
+                        call      #adc_3_avg    
+                        mov       adc_,adc3_VAL_temp1          ; Move result
+            
+                        cmp      adc3_VAL_temp1,adc3_VAL_temp
+                        jl       adc3_VAL_temp_adc3_VAL_temp1
+                        
+                        sub       adc3_VAL_temp1,adc3_VAL_temp
+                        cmp       #4,adc3_VAL_temp
+                        jge       adc3_drift_100  
+                        jmp       adc3_ok   
+                        
+adc3_VAL_temp_adc3_VAL_temp1
+                        sub       adc3_VAL_temp,adc3_VAL_temp1
+                        cmp       #4,adc3_VAL_temp1
+                        jge       adc3_drift_100 
+adc3_ok          
+              dec.b    adc3_count 
+              jz       adc3_ok_ok
+              jmp      adc3_drift_time_10
+             
+adc3_ok_ok  
+
+;------------------------------------------------------            
+;testmode adc1,adc2,adc3,cca 最高最低 常數比較，太高或太低表示硬體有問題，會再迴圈跑
+;-----------------------------------------------------                      
+            
+            cmp       #testmode_adc3_min,adc3     ;ad3 是顯示主電壓
+            jl        testmode_1
+            
+            cmp       #testmode_adc2_min,adc2     ;ad2 是鱷魚夾未夾好的電壓      
+            jl        testmode_1
+            
+            ;cmp       #testmode_adc1_min,adc1     ;ad1 是10R電祖上的電壓     
+            ;jl        testmode_1
+            
+            cmp       #testmode_cca_val_min,CCA_VAL_temp    ;cca值的下限
+            jl        testmode_1            
+;----------------------------------------------            
+            cmp       #testmode_adc3_max,adc3          ;ad3 是顯示主電壓 
+            jge        testmode_1
+            
+            cmp       #testmode_adc2_max,adc2          ;ad2 是鱷魚夾未夾好的電壓  
+            jge        testmode_1
+            
+            ;cmp       #testmode_adc1_max,adc1           ;ad1 是10R電祖上的電壓 
+            ;jge        testmode_1
+            
+            cmp       #testmode_cca_val_max,CCA_VAL_temp   ;cca值的上限
+            jge        testmode_1
+            
+            
+;----------------------------
+;若要直接跳過不按enter就取消這三行
+;------------------------------
+               ;call     #keyscan  
+             ;CMP.B     #ENTER,KEY_VAL       ;按ENTER 跳到正常工作模式        
+             ;jne       testmode_1
+             
+;---------------------------------------------------------  
+ 
+          
+            IF AUTO_POWER_ADJ =1
+;********************************************** 
+;   write_flash_adc3_MR_rate  寫一次  2-1=1
+;*********************************************
+              dec.b       auto_count
+              jz        write_flash_adc3_VAL_end  
+              
+            call    #auto_power_adc3_MR_rate    ;adc3 計算 1244/adc3_VAL_=以後要乘的倍率 
+                                                ;MR 計算 466m歐/RES_VAL_=以後要乘的倍率存到INFO FLASH                               
+write_flash_adc3_VAL_end 
+
+           mov.b      #1,auto_count 
+         
+           call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+
+           MOV       adc3,R12
+           call      #BIN2BCD4
+          ;MOV	   r13,BCD_LSB
+          ;CALL      #BCD_SWPB
+           ;call      #DIS_ADC3_rate  
+           
+           call    #auto_power_mr_rate         ; auto_power_ mr 乘修正基數 是info 
+           call     #CALCULATE_CCA_VAL 
+       
+           MOV       CCA_VAL,R12
+           call      #BIN2BCD4
+
+            ;call      #DIS_CCA_rate
+            ;call      #UNIT_CCA_2   
+            
+            MOV.B     #00,testmode_y
+;------------------------------------------------------
+            
+            ret
+            ;jmp       testmode_1         ;若取消最高最低 比較，太高或太低表示硬體有問題，要將這行恢復
+            
+         ELSE 
+           jmp       testmode_1
+           
+         ENDIF
+;----------------------------------------------
+          
+        

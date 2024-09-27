@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userOverrides>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\prog577\prog6.0\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\prog577\prog6.0\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\prog577\prog6.0\disselvotage.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\prog577\prog6.0\disver.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\prog577\prog6.0\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\progt570\prog2.8\batttest.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\batt5.0\progt570\prog2.8\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+</userOverrides>

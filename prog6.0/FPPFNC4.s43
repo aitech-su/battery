@@ -1,0 +1,807 @@
+;============================================================================
+;  MSP430 Floating Point Package   Version 4.1	IAR
+;
+;  Trigonometric and other Functions
+;  Texas Instruments Deutschland
+;  Date:    July  23   2002    4.1		IAR Version
+;  Version: 4.02  12.3.97 LB   Sin X, Sinh X
+;  Version: 4.03  18.3.97 LB   Cos X, Cosh X, FLT_RNG added
+;  Version: 4.04  27.3.97 LB   Tan X, Cot X
+;  Version: 4.05   7.8.97 LB   Ln X,  Exp X, A^B       tested
+;  Version: 4.06 12.10.97 LB   X^0.5		   tested
+;  Version: 4.07 14.10.97 LB   X^1/3	    tested
+;  Version: 4.07.1 7.3.00 LB   Error: FLT1 enabled
+;  Version: 4.1   23.7.02 LB   Error: square root
+;==============================================================================
+;  BEGIN OF THE TRIGONOMETRIC FUNCTIONS
+;
+; Sin, Cosine, Hyperbolic Sine, Hyperbolic Cosine of X (radians)
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_xxx		; Call the function
+;	...			; RPARG, RPRES and SP point to result
+;
+; Range: -2xPi < X < +2xPi	for larger numbers FAST loss of accuracy
+;
+;   Initialization for the trigonometric functions
+;  +--------------+-------+-------+--------+--------+
+;  | INIT	  | sin X | cos X | sinh X | cosh X |
+;  +--------------+-------+-------+--------+--------+
+;  | Sign Mask	  | 080h  |  080h | 000h   |  000h  |
+;  | n		  | 1.0   |  0.0  | 1.0    |  0.0   |
+;  | Serial Term  |   X   |  0.0  |   X    |  0.0   |
+;  | Result Area  |   X   |  0.0  |   X    |  0.0   |
+;  +--------------+-------+-------+--------+--------+
+;
+FPL      EQU    (ML/8)+1        ; Length of FPP numbers (bytes)
+;
+; Floating Point Sine Function: Result on TOS = SIN(@RPARG)
+; Prepare the stack with the initial constants
+;
+FLT_SIN PUSH	#80h		; Sign mask (toggle)
+	JMP	SINc
+;
+; Hyperbolic Sine Function: Result on TOS = SINH(@RPARG)
+;
+FLT_SINH PUSH	#00h		; Sign mask (always pos.)
+SINc	PUSH	#0		; n: 1
+     IF DOUBLE=1
+	PUSH	#0
+     ENDIF
+	PUSH	#08000h 	; .FLOAT 1.0
+;
+     IF DOUBLE=1
+        PUSH    4(R5)        ; Series term: X
+     ENDIF
+        PUSH    2(R5)
+        PUSH    @R5          ;
+;
+	JMP	TRIGCOM 	; To common part
+;
+; Floating Point Cosine Function: Result on TOS = COS(@RPARG)
+; Prepare the stack with the initial constants
+;
+FLT_COS PUSH	#80h		; Sign mask (toggle)
+	JMP	COSc
+;
+; Hyperbolic Cosine Function: Result on TOS = COSH(@RPARG)
+;
+FLT_COSH PUSH	#00h		; Sign mask (always pos.)
+COSc	PUSH	#0		; n: 0
+     IF DOUBLE=1
+	PUSH	#0
+     ENDIF
+	PUSH	#00h		; .FLOAT 0.0
+;
+     IF DOUBLE=1
+	PUSH	#0		; Series term: 1.0
+     ENDIF
+	PUSH	#0
+	PUSH	#08000h 	; .FLOAT 1.0
+;
+; Common part for sin X, cos X, sinh X and cosh X
+;
+TRIGCOM  EQU    $
+     IF DOUBLE=1
+        PUSH    4(R5)        ; Push X onto stack (gets X^2)
+     ENDIF
+        PUSH    2(R5)        ;
+        PUSH    @R5          ;
+;
+	MOV	RPARG,RPRES	; Both pointers to X
+	CALL	#FLT_MUL	; X^2 to actual stack
+;
+	ADD	#FPL,RPARG	; Copy serial term to result space
+        MOV     @R5+,3*FPL+4(SP)   ; is X or 1.0
+        MOV     @R5+,3*FPL+6(SP)
+     IF DOUBLE=1
+        MOV     @R5+,3*FPL+8(SP)
+     ENDIF
+	SUB	#FPL,SP 	; Working area for calculations
+	MOV	SP,RPRES
+;
+TRIGLOP MOV	#FLT2,RPARG	; Address of .FLOAT 2.0
+	ADD	#3*FPL,RPRES	; Address n
+	CALL	#FLT_ADD	; n + 2
+        MOV     @R5+,3*FPL(SP)  ; (n+2) -> n
+        MOV     @R5+,3*FPL+2(SP)
+     IF DOUBLE=1
+        MOV     @R5+,3*FPL+4(SP)
+     ENDIF
+;
+; Build (n+1)x(n+2) for next term. (n+2)^2 - (n+2) = (n-1)x(n+2)
+;
+	MOV	RPRES,RPARG	; Both point to (n+2)
+	CALL	#FLT_MUL	; (n+2)^2
+	ADD	#3*FPL,RPARG	; Point to old n
+	CALL	#FLT_SUB	; (n+2)^2 -(n+2) = (n+1)x(n+2)
+;
+; The serial term is divided by (n+1)x(n+2)
+;
+	ADD	#2*FPL,RPRES	; Point to serial term
+	CALL	#FLT_DIV	; Serial term/(n+1)x(n+2)
+	ADD	#FPL,RPARG	; Point to x^2
+	CALL	#FLT_MUL	; ST x X^2/(n+1)x(n+2)
+	JN	TRIGERR 	; Error, status in SR and HELP
+	XOR	4*FPL(SP),0(SP) ; Modify sign of new serial term
+        MOV     @R5+,2*FPL(SP)        ; save new serial term
+        MOV     @R5+,2*FPL+2(SP)
+      IF DOUBLE=1
+        MOV     @R5+,2*FPL+4(SP)
+      ENDIF
+	ADD	#3*FPL+4,RPARG		; Point to result area
+	CALL	#FLT_ADD		; Old sum + new serial term
+        MOV     @R5+,4*FPL+4(SP)     ; New result to result area
+        MOV     @R5+,4*FPL+6(SP)
+     IF DOUBLE=1
+        MOV     @R5+,4*FPL+8(SP)
+     ENDIF
+;
+; Check if enough iterations are made
+;
+	CMP	Nmax,3*FPL(SP)	; Compare with nmax (2 x iterations)
+	JLO	TRIGLOP
+;
+TRIGERR ADD	#4*FPL+2,SP	; Housekeeping: free stack
+	BR	#FLT_END	; To completion part. Error in HELP
+;
+     IF DOUBLE=1
+FLT2    DW      08100h,00000h,00000h ; .double 2.0
+     ELSE
+FLT2    DW      08100h,00000h   ; .float 2.0
+     ENDIF
+Nmax    DW      08470h,00000h   ; .FLOAT 30.0 (Iterations x 2)
+;
+;-----------------------------------------------------------------------
+; Subroutine FLT_RNG moves angle X into the range -Pi < X < +Pi
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_RNG		; Call the function
+;	...			; RPARG, RPRES and SP point to result on TOS
+;
+; Range: -100xPI < X < +100xPI	loss of accuracy increases with X
+;
+FLT_RNG PUSH    @R5          ; Save sign of X on stack
+	AND	#080h,0(SP)	; Only sign remains
+	SUB	#FPL,SP 	; Reserve space for 2^n x Pi
+     IF DOUBLE=1
+        PUSH    4(R5)        ; X on stack
+     ENDIF
+        PUSH    2(R5)
+        PUSH    @R5
+	BIC	#080h,0(SP)	; |X| remains
+FR1	MOV	FLT2PI,FPL(SP)	; 2xPi to stack
+	MOV	FLT2PI+2,FPL+2(SP)
+     IF DOUBLE=1
+	MOV	FLT2PI+4,FPL+4(SP)
+     ENDIF
+	CMP	@SP,FLTPI	; Pi - |X|
+	JHS	FR2		; Pi > |X|: range process done
+;
+; Successive approximation by subtracting 2^n x2Pi
+;
+FR3	INC.B	FPL+1(SP)	; 2Pi x 2
+	CMP	@SP,FPL(SP)	; 2^n x 2Pi - |X|
+	JLO	FR3		; 2^n x 2Pi < |X|
+	DEC.B	FPL+1(SP)	; 2^n x 2Pi > |X| divide by 2
+	MOV	SP,RPRES	; Address |X|
+	MOV	SP,RPARG
+	ADD	#FPL,RPARG	; Address 2^n x 2Pi
+	CALL	#FLT_SUB	; |X| - 2^n x 2Pi
+	JMP	FR1		; Check if in range now
+;
+; Move X (now between -Pi and +Pi) to old working area
+;
+FR2	XOR	2*FPL(SP),0(SP) ; Correct sign of X
+	MOV	@SP+,2*FPL+2(SP) ; Result to old WA
+	MOV	@SP+,2*FPL+2(SP)
+     IF DOUBLE=1
+	MOV	@SP+,2*FPL+2(SP)
+     ENDIF
+	ADD	#FPL+2,SP	; To return address of FLT_RNG
+	BR	#FLT_END	; To completion part
+;
+     IF DOUBLE=1
+FLTPI   DW      08149h,0FDAh,0A221h ; .DOUBLE 3.141592653589793 Pi
+FLT2PI  DW      08249h,0FDAh,0A221h ; .DOUBLE 3.141592653589793*2 2xPi
+     ELSE
+FLTPI   DW      08149h,0FDBh    ; .FLOAT  3.141592653589793 Pi
+FLT2PI  DW      08249h,0FDBh    ; .FLOAT  3.141592653589793*2 2xPi
+     ENDIF
+;--------------------------------------------------------------------------
+; Tangens of X (radians)
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_TAN		; Call the tangens function
+;	...			; RPARG, RPRES and SP point to result
+;
+; Range: -2xPi < X < +2xPi	for larger numbers FAST loss of accuracy
+;--------------------------------------------------------------------------
+FLT_TAN CLR	R4		; Offset for tan X
+	JMP	TRI_COM1	; Go to common handler
+;
+; Cotangens of X (radians)
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_COT		; Call the cotangens function
+;	...			; RPARG, RPRES and SP point to result
+;
+; Range: -2xPi < X < +2xPi	for larger numbers FAST loss of accuracy
+;--------------------------------------------------------------------------
+FLT_COT MOV	#2,R4		; Offset for cot X
+	JMP	TRI_COM1	; Go to common handler
+;
+; Hyperbolic Tangens of X (radians)
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_TANH 	; Call the hyperbolic tangens function
+;	...			; RPARG, RPRES and SP point to result
+;
+; Range: -2xPi < X < +2xPi	for larger numbers FAST loss of accuracy
+;--------------------------------------------------------------------------
+FLT_TANH MOV	 #4,R4		 ; Offset for tanh X
+	JMP	TRI_COM1	; Go to common handler
+;
+; Hyperbolic Cotangens of X (radians)
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_COTH 	; Call the hyperbolic cotangens function
+;	...			; RPARG, RPRES and SP point to result
+;
+; Range: -2xPi < X < +2xPi	for larger numbers FAST loss of accuracy
+;--------------------------------------------------------------------------
+FLT_COTH MOV	 #6,R4		 ; Offset forcoth X
+;
+; Common Handler for tan, cot, tanh, coth and exponent function
+;
+TRI_COM1  EQU $                 ;
+        MOV     @R5+,2(SP)   ; Copy X to result space
+        MOV     @R5+,4(SP)
+         IF     DOUBLE=1
+        MOV     @R5,6(SP)
+         ENDIF
+	SUB	#FPL,SP 	; Allocate new result space
+	SUB	#4,RPARG	; Point to X again
+	CALL	FT1(R4) 	; Calculate 1st function
+	JN	TERR2		; Error: error code in HELP
+	SUB	#FPL,SP 	; Allocate cosine working area
+	ADD	#FPL+2,RPARG	; Point to X
+	CALL	FT2(R4) 	; Calculate 2nd function
+	ADD	#FPL,RPRES	; Point to result of 1st function
+	CALL	#FLT_DIV	; 1st result/2nd result
+	MOV	@SP+,2*FPL(SP)	; Final result to working area
+	MOV	@SP+,2*FPL(SP)
+         IF     DOUBLE=1
+	MOV	@SP+,2*FPL(SP)
+         ENDIF
+TERR2	ADD	#FPL,SP 	; Skip 1st result
+	BR	#FLT_END
+;
+FT1     DW      FLT_SIN         ; tan = sin/cos    1st function
+        DW      FLT_COS         ; cot = cos/sin
+        DW      FLT_SINH        ; tanh = sinh/cosh
+        DW      FLT_COSH        ; coth = cosh/sinh
+;
+FT2     DW      FLT_COS         ; tan = sin/cos    2nd function
+        DW      FLT_SIN         ; cot = cos/sin
+        DW      FLT_COSH        ; tanh = sinh/cosh
+        DW      FLT_SINH        ; coth = cosh/sinh
+;
+;---------------------------------------------------------------------------
+;  BEGIN OF OTHER FUNCTIONS
+; Natural Logaritm Function:	Result on TOS = LN(@RPARG)
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_LN		; Call the function
+;	...			; RPARG, RPRES and SP point to result lnX
+;
+; Range: +2.9x10^-38 < X < +3.4x10^38
+;
+; Errors: X = 0:  N = 1, C = 1, Z = 0	Result: -3.4E38
+;	  X < 0:  N = 1, C = 1, Z = 0	Result: -3.4E38
+;
+; Stack: 3 x FPL + 6
+;
+FLT_LN   EQU   $
+	PUSH	#0		; N binary (divisor, power)
+     IF DOUBLE=1
+        PUSH    4(R5)        ; Push X onto stack
+     ENDIF
+        PUSH    2(R5)        ;
+        PUSH    @R5          ;
+;
+; Check for the legal range of X: 0 < X
+;
+	MOV	#FLT0,RPRES	 ; Check valid range: 0 < X
+	CALL	#FLT_CMP
+	JHS	LNNEG		; X is negative
+;
+; If X = 1.0 the result is 0.0
+;
+ 	MOV	#FLT1,RPRES	 ; Check if X= 1
+	CALL	#FLT_CMP
+	JEQ	LN1P0		; X is 1
+;
+; The exponent of X is multiplied with ln2. Then ln1.5 is added to correct
+; the division by 1.5. Result is base for final result
+;
+	SUB	#FPL,SP 	; Reserve working space
+        MOV.B   1(R5),HELP   ; Copy exponent of X
+	XOR	#80h,HELP	; Correct sign of exponent
+	SXT	HELP		;
+	MOV	HELP,0(SP)
+	MOV	SP,RPARG
+	CALL	#CNV_BIN16	; Exponent to FP format
+	MOV	#FLN2,RPARG	; To ln2
+	CALL	#FLT_MUL	; exp x ln2
+	MOV	#FLN1P5,RPARG	 ; To ln1.5
+	CALL	#FLT_ADD	; exp x ln2 + ln1.5
+        MOV     @R5+,2*FPL+4(SP)     ; To result area
+        MOV     @R5+,2*FPL+6(SP)
+     IF DOUBLE=1
+        MOV     @R5+,2*FPL+8(SP)
+     ENDIF
+;
+; The mantissa of X is converted into the range -0.33 to +0.33 to get
+; fast convergion
+;
+	ADD	#FPL,SP 	; Back to X
+	MOV	SP,RPRES	; RPRES points to X
+	MOV.B	#80h,1(SP)	; 1.0 =< X < 2.0
+	MOV	#FLT1P5,RPARG	; To .FLOAT 1.5
+	CALL	#FLT_DIV	; 2/3 =< X < 4/3
+	MOV	#FLT1,RPARG	; To .FLOAT 1.0
+	CALL	#FLT_SUB	; -1/3 =< X < +1/3
+;
+     IF DOUBLE=1                ;
+	PUSH	#0		; 1.0 to X^N area
+     ENDIF
+	PUSH	#0
+	PUSH	FLT1
+;
+     IF DOUBLE=1                ; N (FLT1.0) on stack
+	PUSH	#0
+     ENDIF
+	PUSH	#0
+	PUSH	FLT1
+	SUB	#FPL,SP 	; Working area
+;
+LNLOP    EQU $
+	MOV	SP,RPRES
+	ADD	#2*FPL,RPRES	; To X^N
+	MOV	SP,RPARG
+	ADD	#3*FPL,RPARG	; To X
+	CALL	#FLT_MUL	; X^(N+1)
+        MOV     @R5+,2*FPL(SP)     ; New X^(N+1) -> X^N
+        MOV     @R5+,2*FPL+2(SP)
+     IF DOUBLE=1
+        MOV     @R5+,2*FPL+4(SP)     ; RPARG points to N
+     ENDIF
+	CALL	#FLT_DIV	; X^N/N
+    INC	4*FPL(SP)	; Incr. binary N
+	BIT	#1,4*FPL(SP)	; N even?
+	JNZ	LN1
+	XOR	#80h,0(SP)	; Yes, change sign of X^N/N
+;
+LN1	ADD	#4*FPL+4,RPARG		; Point to result area
+	CALL	#FLT_ADD		; Old result + new one
+        MOV     @R5+,4*FPL+4(SP)     ; New result to result area
+        MOV     @R5+,4*FPL+6(SP)
+     IF DOUBLE=1
+        MOV     @R5+,4*FPL+8(SP)
+     ENDIF
+;
+; Float N is incremented
+;
+	MOV	#FLT1,RPARG	; To .FLOAT 1.0
+	ADD	#FPL,RPRES	; To N
+	CALL	#FLT_ADD
+        MOV     @R5+,FPL(SP)     ; N+1 to N area
+        MOV     @R5+,FPL+2(SP)
+     IF DOUBLE=1
+        MOV     @R5+,FPL+4(SP)
+     ENDIF
+;
+; Check if enough iterations are made
+;
+	CMP	#LNIT,4*FPL(SP)  ; Compare with necessary iterations
+	JLO	LNLOP		; HELP = 0
+;
+      ADD     #4*FPL+2,SP     ; Housekeeping: free stack
+LNE   BR      #FLT_END	      ; To completion part. Error in HELP
+;
+LN1P0	ADD	#FPL+2,SP	; X = 1: result = 0
+	BR	#RES0
+LNNEG	ADD	#FPL+2,SP	; X <= 0: -3.4E38 result
+	MOV	#0FFFFh,2(SP)	; MSBs negative
+	BR	#DBL_OVERFLOW
+
+     IF DOUBLE=1
+FLT0    DW      00000h,00000h,00000h ; .DOUBLE  0.0
+FLT1    DW      08000h,00000h,00000h ; .DOUBLE  1.0
+FLT1P5  DW      08040h,00000h,00000h ; .DOUBLE  1.5
+FLN1P5  DW      07E4Fh,0991Fh,065fAh ; .DOUBLE  0.405465108107  ln1.5
+FLN2    DW      07F31h,07217h,0F7D2h ; .DOUBLE  0.6931471805599 ln2.0
+LNIT    EQU     22                   ; Number of iterations
+     ELSE
+FLT0    DW      00000h,00000h   ; .FLOAT  0.0
+FLT1    DW      08000h,00000h   ; .FLOAT  1.0
+FLT1P5  DW      08040h,00000h   ; .FLOAT  1.5
+FLN1P5  DW      07E4Fh,0991Fh   ; .FLOAT  0.405465108107  ln1.5
+FLN2    DW      07F31h,07218h   ; .FLOAT  0.6931471805599 ln2.0
+LNIT    EQU     13              ; Number of iterations
+     ENDIF
+;
+;-----------------------------------------------------------------------
+; Exponential Function: e^X.	Result on TOS = e^(@RPARG)  GETESTET
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_EXP		; Call the function
+;	...			; RPARG, RPRES and SP point to result
+;
+; Range: -88.72 < X < +88.72
+;
+; Errors: X > +88.72: N = 1, C = 1, Z = 1  Result: +3.4E38
+;	  X < -88.72: N = 1, C = 0, Z = 0  Result: 0.0 if SW_UFLOW = 1
+;		      N = 0, C = x, Z = x  Result: 0.0 if SW_UFLOW = 0
+;
+FLT_EXP MOV     @R5+,2(SP)   ; Copy X to result area
+        MOV     @R5+,4(SP)
+         IF DOUBLE=1
+        MOV     @R5,6(SP)
+         ENDIF
+;
+; Check if X is inside limits: -88.72 < X < +88.72  (8631h,7218h)
+;
+	MOV	2(SP),COUNTER	; MSBs, exp and sign of X
+	BIC	#080h,COUNTER	; |X|
+	CMP	#08631h,COUNTER ; |X| > 88.72? ln3.4x10^38 = 88.72
+	JLO	EXP_L3		; |X| is in range
+	JNE	EXP_RNGOUT	; X > 88.72 .or. X < -88.72: error
+	CMP	#07217h,4(SP)	; Check LSBs
+	JHS	EXP_RNGOUT	; LSBs show: |X| > 88.72
+;
+; Prepare exponent of result: N = X/ln2  (rounded)
+;
+EXP_L3	MOV	SP,RPRES
+	SUB	#FPL,SP 	; New working area
+	ADD	#2,RPRES	; To X (result area)
+	MOV	#FLTLN2I,RPARG	; To 2/ln2 (allows MPY)
+	CALL	#FLT_MUL	; 2 x X/ln2
+	CALL	#CNV_FP_BIN	; 2 x X/ln2 -> binary
+         IF     DOUBLE=1
+	SUB	#2,SP		; LSBs contain N
+	ADD	#FPL-2,RPARG	; To N
+         ELSE
+	ADD	#FPL,RPARG	; To binary N
+         ENDIF                  ; N is at correct place yet
+        RRA     @R5          ; /2 for rounding
+	JNC	EXPL1		; No carry, no rounding
+        TST     0(R5)        ; Sign of N
+	JN	EXPL1
+        INC     0(R5)        ; Round N
+EXPL1	CALL	#CNV_BIN16	; N -> FPP format Xn
+;
+; Calculation of g: g = X - Xn*(C1 + C2)
+;
+	MOV	#EXPC,RPARG	; C1 + C2
+	CALL	#FLT_MUL	; Xn*(C1 + C2)
+	ADD	#FPL+4,RPRES	; To X
+	CALL	#FLT_SUB	; g = X - Xn*(C1 + C2)
+;
+; Calculation of mantissa R(g): R(g) = 0.5 + g*P(z)/(Q(z) - g*P(z))
+;
+	SUB	#FPL,SP 	; Area for z = g^2
+	CALL	#FLT_MUL	; z = g^2
+;
+; Calculation of g*P(z): g*P(z) = g*(p1*z + p0)
+;
+	SUB	#FPL,SP 	; Area for g*P(z)
+	MOV	#EXPP1,RPARG	; To p1, RPRES points to z
+	CALL	#FLT_MUL	; p1*z
+	MOV	#EXPP0,RPARG	; To p0
+	CALL	#FLT_ADD	; p1*z + p0
+	ADD	#2*FPL,RPARG	; To g
+	CALL	#FLT_MUL	; g*P(z) = g*(p1*z + p0)
+	MOV	@SP+,2*FPL-2(SP) ; Store g*P(z)
+	MOV	@SP+,2*FPL-2(SP)
+         IF     DOUBLE=1
+	MOV	@SP+,2*FPL-2(SP)
+         ENDIF
+;
+; Calculation of Q(z): Q(z) = (q1*z + q0)	    .FLOAT format
+;		       Q(z) = (q2*z + q1)*z + q0    .DOUBLE format
+;
+	SUB	#FPL,SP 	; Area for Q(z)
+         IF     DOUBLE=1        ; Quadratic equation
+	MOV	#EXPQ2,RPARG	; To q2
+	ADD	#FPL,RPRES	; To z
+	CALL	#FLT_MUL	; q2*z
+	MOV	#EXPQ1,RPARG	; To q1
+	CALL	#FLT_ADD	; q2*z + q1
+         ELSE                   ; Linear equation
+	MOV	#EXPQ1,RPARG	; To q1
+         ENDIF
+	ADD	#FPL,RPRES	; To z
+	CALL	#FLT_MUL	; (q2*z + q1)*z  resp.	q1*z
+	MOV	#EXPQ0,RPARG	; To q0
+	CALL	#FLT_ADD	; (q2*z + q1)*z + q0   resp.  q1*z + q0
+;
+; Result mantissa R(g) = 0.5 + g*P(z)/(Q(z) - g*P(z))
+;
+	ADD	#2*FPL,RPARG	; To g*P(z), RPRES to Q(z)
+	CALL	#FLT_SUB	; Q(z) - g*P(z)
+	ADD	#2*FPL,RPRES	; To g*P(z)
+	CALL	#FLT_DIV	; g*P(z)/(Q(z) - g*P(z))
+	MOV	#FLT0P5,RPARG	; To 0.5
+	CALL	#FLT_ADD	; R(g) = 0.5 + g*P(z)/(Q(z) - g*P(z))
+	MOV	@SP+,3*FPL+2(SP) ; Store R(g) to result area
+	MOV	@SP+,3*FPL+2(SP)
+         IF     DOUBLE=1
+	MOV	@SP+,3*FPL+2(SP)
+         ENDIF
+;
+; Insert exponent N+1 to result
+;
+	ADD	#2*FPL,SP	; To binary N
+	SETC			; N + 1
+	ADDC.B	@SP+,3(SP)	; Add N + 1 to exponent of result
+	BR	#FLT_END	; To normal return, HELP = 0
+;
+; X is out of range: test if overflow (+ sign) or underflow (- sign)
+;
+EXP_RNGOUT TST.B 2(SP)		; Overflow? (sign positive)
+	JGE	EXP_OVFL	; Yes, error: handling in FPP04
+	BR	#DBL_UNDERFLOW	; Underflow: depends on SW_UFLOW
+EXP_OVFL BR	#DBL_OVERFLOW
+;
+
+         IF     DOUBLE=1
+FLTLN2I DW      08138h,0AA3Bh,0295Ch ; .double +1.44269504088896*2  2/ln2
+EXPC    DW      07F31h,07217h,0f7d2H ; .double +0.693359375-2.121944400546E-4
+EXPP1   DW      07842h,0FBC9h,07480h ; .double +0.595042549776E-2  p1
+EXPP0   DW      07D7Fh,0FFFFh,0FF80h ; .double +0.24999999999992   p0
+EXPQ2   DW      0741Bh,0DE13h,09461h ; .double +0.29729363682E-3   q2
+EXPQ1   DW      07B5Bh,0699Dh,006A0h ; .double +0.5356751764522E-1 q1
+FLT0P5  EQU     $                    ; .double +0.5
+EXPQ0   DW      07F00h,00000h,00000h ; .double +0.5                q0
+         ELSE
+FLTLN2I DW      08138h,0AA3Bh   ; .float +1.4426950408889634074*2  2/ln2
+EXPC    DW      07F31h,07218h   ; .float +0.693359375-2.121944400546906E-4
+EXPP1   DW      07808h,05308h   ; .float +0.00416028863     p1
+EXPP0   DW      07E00h,00000h   ; .float +0.24999999950     p0
+EXPQ1   DW      07B4Ch,0BF5Bh   ; .float +0.04998717878     q1
+FLT0P5  EQU     $               ; .float +0.5
+EXPQ0   DW      07F00h,00000h   ; .float +0.5               q0
+         ENDIF
+;-----------------------------------------------------------------------
+; Power Function: A^B.		Result on TOS = (@RPRES)^(@RPARG)GETESTET
+;
+; Call: MOV   #addressA,RPRES	; RPRES points to the address of A
+;	MOV   #addressB,RPARG	; RPARG points to the address of B
+;	CALL  #FLT_POWR 	; Call the power function
+;	...			; RPARG, RPRES and SP point to result A^B
+;
+; Range:  2.9x10^-39 < A < 3.4x10^+38
+;	  -88.72 < BxlnA < +88.72
+;
+; Errors: A < 0:	  N = 1, C = 1, Z = 0  Result: -3.4E38
+;	  BxlnA > +88.72: N = 1, C = 1, Z = 1  Result: +3.4E38
+;	  BxlnA < -88.72: N = 1, C = 0, Z = 0  Result: 0.0 if SW_UFLOW = 1
+;			  N = 0, C = x, Z = x  Result: 0.0 if SW_UFLOW = 0
+;	  BxlnA > 3.4E38: Error handling of multiplication
+;
+; Stack:  FPL + 4 + (3 x FPL + 8)
+;
+FLT_POWR  EQU   $
+     IF DOUBLE=1
+        TST     4(R11)          ; Check if A = 0
+	JNZ	PWRL1
+        TST     2(R11)
+	JNZ	PWRL1		; A # 0
+        TST     0(R11)
+	JZ	POWR0		; A = 0: result = 0
+     ELSE
+        TST     2(R9)           ; Check if A = 0
+	JNZ	PWRL1		; A # 0
+        TST     0(R9)
+	JZ	POWR0		; A = 0: result = 0
+     ENDIF
+;
+PWRL1	PUSH	RPARG		; Save pointer to exponent B
+	SUB	#FPL,SP 	; Working area
+	MOV	RPRES,RPARG	; Pointer to base A
+	CALL	#FLT_LN 	; lnA
+	JN	PWERR		; A is negative
+	MOV	FPL(SP),RPARG	; Pointer to exponent
+	CALL	#FLT_MUL	; BxlnA
+	JN	PWERR		; B is too large. HELP # 0
+	CALL	#FLT_EXP	; e^(BxlnA) = A^B
+PWERR	MOV	@SP+,FPL+2(SP)	; To result area
+	MOV	@SP+,FPL+2(SP)
+         IF     DOUBLE=1
+	MOV	@SP+,FPL+2(SP)
+         ENDIF
+	ADD	#2,SP		; Skip exponent pointer
+	BR	#FLT_END	; Error code in HELP
+;
+POWR0	BR	#RES0		; A = 0: A^B = 0
+;-------------------------------------------------------------------------
+; Square Root Subroutine X^0.5	Result on TOS = (@RPARG)^0.5
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_SQRT 	; Call the square root function
+;	...			; RPARG, RPRES and SP point to result X^0.5
+;
+; Range:  0 =< A < 3.4x10^+38
+;
+; Errors: X < 0:   N = 1	Result: previous result
+;
+; Stack:  FPL + 2 bytes
+;
+; Calculates the square root of the number X RPARG points to.
+; SP, RPARG and RPRES point to the result on TOS
+;
+FLT_SQRT  EQU $
+        TST.B   0(R5)        ; Argument negative?
+	JN	SQRT_ERR	; Yes, return with N = 1
+        MOV     @R5+,2(SP)   ; Copy X to result area
+        MOV     @R5+,4(SP)
+         IF     DOUBLE=1
+        MOV     @R5+,6(SP)
+         ENDIF
+	CLR HELP
+         IF DOUBLE=1
+	TST 6(SP)	    ; Check for X = 0
+	JNE SQ0
+        ENDIF
+	TST 4(SP)
+	JNE SQ0
+	TST 2(SP)
+	JEQ SQ3 	    ; X = 0: result 0, no error
+;  
+SQ0	PUSH	#4		; Loop count (iterations)
+	PUSH	FPL+4(SP)	; Push X on stack for Xn
+	PUSH	FPL+4(SP)
+         IF DOUBLE=1
+	PUSH	FPL+4(SP)
+         ENDIF
+;
+; 1st estimation for X^0.5: exponent even: 0.5 x fraction + 0.5
+;			    exponent odd:  fraction .or. 0.30h
+;			    exponent/2
+;
+	RRA.B	1(SP)		; Exponent/2
+	JC	SQ1		; Exponent even or odd?
+	RRA.B	@SP		; Exponent is even
+	JMP	SQ2		; 0.5 + 0.5 x fraction
+SQ1	BIS.B	#030h,0(SP)	; Exponent is odd: add correction
+SQ2	XOR.B	#040h,1(SP)	; Correct exponent
+;
+SQLOOP	MOV	SP,RPARG	; Pointer to Xn
+        MOV     SP,RPRES
+	ADD	#FPL+4,RPRES	; Pointer to X
+	SUB	#FPL,SP 	; Allocate stack for result
+	CALL	#FLT_DIV	; X/xn
+	ADD	#FPL,RPARG	; Point to xn
+	CALL	#FLT_ADD	; X/xn + xn
+        IF      DOUBLE=1
+        DEC.B   1(R11)          ; 0.5 x (X/xn + xn) = xn+1
+        ELSE
+        DEC.B   1(R9)           ; 0.5 x (X/xn + xn) = xn+1
+        ENDIF
+	MOV	@SP+,FPL-2(SP)	; xn+1 -> xn
+	MOV	@SP+,FPL-2(SP)
+         IF     DOUBLE=1
+	MOV	@SP+,FPL-2(SP)
+         ENDIF
+	DEC	FPL(SP) 	; Decrement loop counter
+        JNZ     SQLOOP
+	MOV	@SP+,FPL+2(SP)	; N = 0 (FLT_ADD)
+	MOV	@SP+,FPL+2(SP)	; Root to result space
+         IF     DOUBLE=1
+	MOV	@SP+,FPL+2(SP)
+         ENDIF
+	ADD	#2,SP		; Skip loop count
+SQ3	BR	#FLT_END	; To completion part
+SQRT_ERR MOV	#FN,HELP	; Root of negative number: N = 1
+	JMP	SQ3		;
+;
+;-------------------------------------------------------------------------
+; Cubic Root Subroutine X^1/3  Result on TOS = (@RPARG)^1/3
+;
+; Call: MOV   #addressX,RPARG	; RPARG points to the address of X
+;	CALL  #FLT_CBRT 	; Call the cubic root function
+;	...			; RPARG, RPRES and SP point to result
+;				; Result on the top of the stack
+;
+; Formula: xn+1 = 1/3(2xn + X x xn^-2)
+;
+; Range:  -3.4x10^+38 =< X =< 3.4x10^+38
+;
+; Errors: No errors possible
+;
+; Stack:  2 x FPL + 2 bytes
+;
+; Calculates the cubic root of the number X RPARG points to.
+; SP, RPARG and RPRES point to the result on TOS
+;
+FLT_CBRT  EQU $
+        MOV     @R5+,2(SP)   ; Copy X to result area
+        MOV     @R5+,4(SP)
+         IF     DOUBLE=1
+        MOV     @R5+,6(SP)
+         ENDIF
+         IF DOUBLE=1
+	TST 6(SP)		; Check for X = 0
+	JNE CB0
+        ENDIF
+	TST 4(SP)
+	JNE CB0
+	TST 2(SP)
+	JEQ CB3 		; X = 0: result 0
+
+;  
+CB0      EQU    $
+         IF     DOUBLE=0        ; Loop count
+	PUSH	#4		; .FLOAT  4 iterations
+         ELSE
+	PUSH	#5		; .DOUBLE 5 iterations
+         ENDIF
+	PUSH	FPL+4(SP)	; Push X on stack for Xn
+	PUSH	FPL+4(SP)
+         IF DOUBLE=1
+	PUSH	FPL+4(SP)
+         ENDIF
+;
+; 1st estimation for X^1/3:	exponent/3, fraction = +-1.4
+;
+	MOV.B	1(SP),RPARG	; Exponent of X 00xx
+	AND	#080h,0(SP)	; Only sign of X remains
+	ADD	#08034h,0(SP)	; +-1.4 for 1st estimation
+	TST.B	RPARG		; Exponent's sign?
+	JN	DCL$2		; positive
+DCL$1	DEC.B	1(SP)		; Neg. exp.: exponent - 1
+	ADD.B	#3,RPARG	; Add 3 until 080h is reached
+	JN	CBLOOP		; 080h is reached,
+	JMP	DCL$1		; Continue
+DCL$3	INC.B	1(SP)		; Pos. exp.: exponent + 1
+DCL$2	SUB.B	#3,RPARG	; Subtr. 3 until 080h is reached
+	JN	DCL$3		; Continue
+; 
+CBLOOP	MOV	SP,RPARG	; Point to xn
+	MOV	SP,RPRES
+	SUB	#FPL,SP 	; Allocate stack for result
+	CALL	#FLT_MUL	; xn^2
+	ADD	#2*FPL+4,RPRES	; Point to A
+	CALL	#FLT_DIV	; A/xn^2
+	INC.B	FPL+1(SP)	; xn x 2
+	ADD	#FPL,RPARG	; Point to 2xn
+	CALL	#FLT_ADD	; A/xn^2 + 2xn
+	MOV	#FLT3,RPARG	; 1/3 x (A/xn^2 + 2xn) = xn+1
+	CALL	#FLT_DIV
+	MOV	@SP+,FPL-2(SP)	; xn+1 -> xn
+	MOV	@SP+,FPL-2(SP)
+     IF DOUBLE=1
+	MOV	@SP+,FPL-2(SP)
+     ENDIF
+	DEC	FPL(SP) 	; Decr. loop count
+	JNZ	CBLOOP
+	MOV	@SP+,FPL+2(SP)	; Result to result area
+	MOV	@SP+,FPL+2(SP)	; Cubic root to result space
+     IF DOUBLE=1
+	MOV	@SP+,FPL+2(SP)
+     ENDIF
+	ADD	#2,SP		; Skip loop count
+CB3	CLR	HELP		; No error
+	BR	#FLT_END	; Normal termination
+;
+         IF     DOUBLE=1
+FLT3    DW      08140h,00000h,00000H ; .DOUBLE 3.0
+         ELSE
+FLT3    DW      08140h,00000h   ; .FLOAT 3.0
+         ENDIF
+;
+;  END OF THE FLOATING POINT FUNCTIONS
+;=======================================================================
+

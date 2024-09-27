@@ -1,0 +1,1612 @@
+################################################################################
+#                                                                              #
+#      IAR Universal Linker V6.5.1.95                                          #
+#                                                                              #
+#           Link time     =  03/Jul/2019  14:19:06                             #
+#           Target CPU    =  MSP430                                            #
+#           List file     =  C:\Users\james\Desktop\batt24v\batt_print_com\bbp #
+#                            prog\Debug\List\battprint24.map                   #
+#           Output file 1 =  C:\Users\james\Desktop\batt24v\batt_print_com\bbp #
+#                            prog\Debug\Exe\battprint24.d43                    #
+#                            Format: ubrof10                                   #
+#                            UBROF version 10.0.6                              #
+#                            Using library modules for C-SPY (-rt)             #
+#           Command line  =  -f C:\Users\james\AppData\Local\Temp\EWAF66.tmp   #
+#                            (C:\Users\james\Desktop\batt24v\batt_print_com\bb #
+#                            pprog\Debug\Obj\battprintmain.r43                 #
+#                            -o                                                #
+#                            C:\Users\james\Desktop\batt24v\batt_print_com\bbp #
+#                            prog\Debug\Exe\battprint24.d43                    #
+#                            -l                                                #
+#                            C:\Users\james\Desktop\batt24v\batt_print_com\bbp #
+#                            prog\Debug\List\battprint24.map                   #
+#                            -xms                                              #
+#                            "-IC:\Program Files (x86)\IAR Systems\Embedded Wo #
+#                            rkbench 8.0\430\LIB\"                             #
+#                            -f                                                #
+#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
+#                            bench 8.0\430\config\linker\lnk430f149.xcl"       #
+#                            (-cmsp430 -QCODE_I=CODE_ID -QTLS16_I=TLS16_ID     #
+#                            -D__iar_HWMUL=130 -Z(CONST)INFO=1000-10FF         #
+#                            -Z(CONST)INFOA=1080-10FF                          #
+#                            -Z(CONST)INFOB=1000-107F                          #
+#                            -Z(DATA)DATA16_I,DATA16_Z,DATA16_N,TLS16_I=0200-0 #
+#                            9FF                                               #
+#                            -Z(DATA)DATA16_HEAP+_DATA16_HEAP_SIZE             #
+#                            -Z(DATA)CODE_I -Z(DATA)CSTACK+_STACK_SIZE#        #
+#                            -Z(CONST)DATA16_C,DATA16_ID,TLS16_ID,DIFUNCT,CHEC #
+#                            KSUM=1100-FFDF                                    #
+#                            -Z(CODE)CSTART,ISR_CODE,CODE_ID=1100-FFDF         #
+#                            -P(CODE)CODE=1100-FFDF -Z(CODE)INTVEC=FFE0-FFFF   #
+#                            -Z(CODE)RESET=FFFE-FFFF) -f                       #
+#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
+#                            bench 8.0\430\config\linker\multiplier.xcl"       #
+#                            (-e?Mul8Hw=?Mul8 -e?Mul16Hw=?Mul16                #
+#                            -e?Mul16to32uHw=?Mul16to32u                       #
+#                            -e?Mul16to32sHw=?Mul16to32s -e?Mul32Hw=?Mul32     #
+#                            -e_Mul64iHw=_Mul64i                               #
+#                            -e_Mul32u32uto64iHw=_Mul32u32uto64i               #
+#                            -e?Mul32fHw=_Mul32f -e_Mul64fHwPtr=_Mul64fPtr)    #
+#                            -D_STACK_SIZE=50 -rt -D_DATA16_HEAP_SIZE=50       #
+#                            -D_DATA20_HEAP_SIZE=50)                           #
+#                                                                              #
+#                           Copyright (C) 1987-2016 IAR Systems AB.            #
+################################################################################
+
+
+
+
+
+                ****************************************
+                *                                      *
+                *           CROSS REFERENCE            *
+                *                                      *
+                ****************************************
+
+                  There are no program entries.
+
+
+                ****************************************
+                *                                      *
+                *    AUTOMATIC SYMBOL REDIRECTIONS     *
+                *                                      *
+                ****************************************
+
+                  There are no automatic symbol redirections.
+
+
+
+                ****************************************
+                *                                      *
+                *              MODULE MAP              *
+                *                                      *
+                ****************************************
+
+
+  DEFINED ABSOLUTE ENTRIES
+    *************************************************************************
+
+  DEFINED ABSOLUTE ENTRIES
+  PROGRAM MODULE, NAME : ?ABS_ENTRY_MOD
+
+Absolute parts
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           _DATA20_HEAP_SIZE       0050 
+           _DATA16_HEAP_SIZE       0050 
+           _STACK_SIZE             0050 
+           __iar_HWMUL             0130 
+    *************************************************************************
+
+  FILE NAME : C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\Debug\Obj\battprintmain.r43
+  PROGRAM MODULE, NAME : battprintmain
+
+Absolute parts
+     1100 - E2BB
+     FFE8 - FFE9
+     FFEC - FFF3
+     FFFE - FFFF
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           FLT_ADD                 113C 
+           FLT_SUB                 1140 
+           FLT_MUL                 120C 
+           FLT_DIV                 12CE 
+           FLT_CMP                 1392 
+           FLT_SAV                 1100 
+           FLT_REC                 111E 
+           FLT_END                 135A 
+           CNV_BIN40               1412 
+           CNV_BIN32               1416 
+           CNV_BIN32U              1420 
+           CNV_BIN16               1428 
+           CNV_BIN16U              1434 
+           CNV_BIN                 143A 
+           CNV_FP_BIN              14C8 
+           CNV_BCD_FP              1450 
+           CNV_FP_BCD              14CC 
+           LOCAL                   ADDRESS         
+           =====                   =======         
+           FSA                     1144 
+           EXIT                    134C 
+           FA12                    1168 
+           FA1                     1184 
+           FA2                     119E 
+           FA3                     11A2 
+           RES0                    1368 
+           FA6                     11C8 
+           DDRNZ                   1344 
+           FA7                     11BA 
+           FA8                     11F2 
+           FA10                    11DC 
+           DBL_UNDERFLOW           1368 
+           FA11                    1208 
+           DBL_OVERFLOW            1372 
+           NORMLZ                  1338 
+           FM1                     1228 
+           FM2                     122E 
+           FM5                     12C2 
+           FM6                     12CA 
+           DIV_BY_ZERO             138C 
+           FD1                     12EC 
+           FD2                     12F2 
+           FD4                     1304 
+           FD3                     1314 
+           FD5                     1332 
+           EXITE                   134E 
+           RES01                   136A 
+           L$1                     137E 
+           FC2                     13B8 
+           A1LTA2                  13CA 
+           FC4                     13B2 
+           A1EQA2                  13CE 
+           A1GTA2                  13B4 
+           FC5                     13C8 
+           FNZ1                    1402 
+           FNZ2                    1410 
+           CNVL$1                  1422 
+           CNVL$2                  1438 
+           NORM                    14A4 
+           BCD_LOP1                146A 
+           CNVL$5                  148A 
+           NORM_LOP                14B2 
+           NORMED                  14C2 
+           CNV_ERR4                1562 
+           BCD_CNV                 151C 
+           FPBIN                   1508 
+           BCD_LOP2                1526 
+           CNV_ERR3                1552 
+           FPBCD                   153A 
+           N_0                     1570 
+           N_1                     1580 
+           N_2                     1590 
+           N_3                     15A0 
+           N_4                     15B0 
+           N_5                     15C0 
+           N_6                     15D0 
+           N_7                     15E0 
+           N_8                     15F0 
+           N_9                     1600 
+           DOT_BYE                 1610 
+           N_11                    1618 
+           N_12                    162E 
+           N_13                    1644 
+           N_14                    165A 
+           N_16                    1670 
+           N_17                    1690 
+           N_18                    16AA 
+           N_19                    172A 
+           N_21                    1738 
+           N_23                    1740 
+           N_25                    1760 
+           N_26                    1770 
+           N_27                    1780 
+           W_A                     1790 
+           W_B                     17A6 
+           W_C                     17BA 
+           W_D                     17CE 
+           W_E                     17E4 
+           W_F                     17F6 
+           W_G                     1806 
+           W_H                     181C 
+           W_I                     1832 
+           W_J                     183C 
+           W_K                     1848 
+           W_L                     185E 
+           W_M                     1870 
+           W_N                     188A 
+           W_O                     18A0 
+           W_P                     18B6 
+           W_Q                     18C6 
+           W_R                     18DC 
+           W_S                     18F0 
+           W_T                     1900 
+           W_U                     1912 
+           W_V                     1928 
+           W_W                     193E 
+           W_X                     195A 
+           W_Y                     1970 
+           W_Z                     1986 
+           W_a                     1998 
+           W_b                     19A6 
+           W_c                     19B6 
+           W_d                     19C4 
+           W_e                     19D4 
+           W_f                     19E2 
+           W_g                     19EC 
+           W_h                     19FC 
+           W_i                     1A0C 
+           W_j                     1A14 
+           W_k                     1A1C 
+           W_l                     1A2C 
+           W_m                     1A34 
+           W_n                     1A4C 
+           W_o                     1A5C 
+           W_p                     1A6C 
+           W_q                     1A7C 
+           W_r                     1A8C 
+           W_s                     1A96 
+           W_t                     1AA2 
+           W_u                     1AAA 
+           W_v                     1ABA 
+           W_w                     1ACA 
+           W_x                     1AE0 
+           W_y                     1AF0 
+           W_z                     1B00 
+           W_3                     1B0E 
+           W_4                     1B2E 
+           W_6                     1B4E 
+           W_7                     1B6E 
+           W_8                     1B8E 
+           W_9                     1BAE 
+           W_12                    1BCE 
+           W_15                    1BEE 
+           W_16                    1C0E 
+           W_17                    1C2E 
+           W_18                    1C4E 
+           W_19                    1C6E 
+           W_20                    1C8E 
+           W_21                    1CAE 
+           W_22                    1CCE 
+           W_23                    1CEE 
+           W_24                    1D0E 
+           W_25                    1D2E 
+           W_26                    1D4E 
+           W_27                    1D6E 
+           W_28                    1D8E 
+           W_29                    1DAE 
+           W_30                    1DCE 
+           W_31                    1DEE 
+           W_32                    1E0E 
+           W_33                    1E2E 
+           W_34                    1E4E 
+           W_35                    1E6E 
+           W_36                    1E8E 
+           W_37                    1EAE 
+           W_38                    1ECE 
+           W_39                    1EEE 
+           W_40                    1F0E 
+           W_41                    1F2E 
+           W_42                    1F4E 
+           W_43                    1F6E 
+           W_44                    1F8E 
+           W_45                    1FAE 
+           W_46                    1FCE 
+           W_47                    1FEE 
+           W_48                    200E 
+           W_49                    202E 
+           W_50                    204E 
+           W_51                    206E 
+           W_52                    208E 
+           W_53                    20AE 
+           W_54                    20CE 
+           W_55                    20EE 
+           W_56                    210E 
+           W_57                    212E 
+           W_58                    214E 
+           W_59                    216E 
+           W_60                    218E 
+           W_61                    21AE 
+           W_62                    21CE 
+           W_63                    21EE 
+           W_64                    220E 
+           W_65                    222E 
+           W_66                    224E 
+           W_67                    226E 
+           W_68                    228E 
+           W_69                    22AE 
+           W_70                    22CE 
+           W_71                    22EE 
+           W_72                    230E 
+           W_73                    232E 
+           W_74                    234E 
+           W_75                    236E 
+           W_76                    238E 
+           W_77                    23AE 
+           W_78                    23CE 
+           W_79                    23EE 
+           W_80                    240E 
+           W_81                    242E 
+           W_82                    244E 
+           W_83                    246E 
+           W_84                    248E 
+           W_85                    24AE 
+           W_86                    24CE 
+           W_87                    24EE 
+           W_88                    250E 
+           W_89                    252E 
+           W_91                    254E 
+           W_92                    256E 
+           W_93                    258E 
+           W_94                    25AE 
+           W_95                    25CE 
+           W_96                    25EE 
+           W_97                    260E 
+           W_98                    262E 
+           W_99                    264E 
+           W_100                   266E 
+           W_101                   268E 
+           W_102                   26AE 
+           W_103                   26CE 
+           W_104                   26EE 
+           W_105                   270E 
+           W_106                   272E 
+           W_107                   274E 
+           W_108                   276E 
+           W_109                   278E 
+           W_110                   27AE 
+           W_111                   27CE 
+           W_112                   27EE 
+           W_113                   280E 
+           W_114                   282E 
+           W_116                   284E 
+           W_118                   286E 
+           W_121                   288E 
+           W_122                   28AE 
+           W_123                   28CE 
+           W_124                   28EE 
+           W_125                   290E 
+           W_126                   292E 
+           W_127                   294E 
+           W_128                   296E 
+           W_129                   298E 
+           W_131                   29AE 
+           W_132                   29CE 
+           W_133                   29EE 
+           W_134                   2A0E 
+           W_135                   2A2E 
+           W_136                   2A4E 
+           W_137                   2A6E 
+           W_138                   2A8E 
+           W_139                   2AAE 
+           W_140                   2ACE 
+           W_141                   2AEE 
+           W_142                   2B0E 
+           W_143                   2B2E 
+           W_144                   2B4E 
+           W_145                   2B6E 
+           W_146                   2B8E 
+           W_147                   2BAE 
+           W_148                   2BCE 
+           W_149                   2BEE 
+           W_150                   2C0E 
+           W_151                   2C2E 
+           W_152                   2C4E 
+           W_154                   2C6E 
+           W_155                   2C8E 
+           W_156                   2CAE 
+           W_157                   2CCE 
+           W_158                   2CEE 
+           W_159                   2D0E 
+           W_160                   2D2E 
+           W_161                   2D4E 
+           W_162                   2D6E 
+           W_163                   2D8E 
+           W_164                   2DAE 
+           W_165                   2DCE 
+           W_166                   2DEE 
+           W_167                   2E0E 
+           W_168                   2E2E 
+           W_169                   2E4E 
+           W_170                   2E6E 
+           W_171                   2E8E 
+           W_172                   2EAE 
+           W_173                   2ECE 
+           W_174                   2EEE 
+           W_175                   2F0E 
+           W_176                   2F2E 
+           W_177                   2F4E 
+           W_178                   2F6E 
+           W_179                   2F8E 
+           W_180                   2FAE 
+           W_181                   2FCE 
+           W_182                   2FEE 
+           W_183                   300E 
+           W_184                   302E 
+           W_185                   304E 
+           W_186                   306E 
+           W_187                   308E 
+           W_188                   30AE 
+           W_189                   30CE 
+           W_190                   30EE 
+           W_191                   310E 
+           W_192                   312E 
+           W_193                   314E 
+           W_194                   316E 
+           W_195                   318E 
+           W_196                   31AE 
+           W_197                   31CE 
+           W_198                   31EE 
+           W_199                   320E 
+           W_200                   322E 
+           W_211                   324E 
+           W_212                   326E 
+           W_213                   328E 
+           W_214                   32AE 
+           W_215                   32CE 
+           W_216                   32EE 
+           W_217                   330E 
+           K_1                     332E 
+           K_2                     33AE 
+           K_3                     33CA 
+           K_4                     3426 
+           K_5                     3482 
+           K_6                     3502 
+           K_7                     353C 
+           K_8                     35BC 
+           K_9                     35D8 
+           K_10                    35F4 
+           K_11                    3666 
+           K_12                    36E6 
+           K_13                    3746 
+           K_14                    37A6 
+           K_15                    37E6 
+           K_16                    3836 
+           K_17                    3870 
+           K_18                    38F0 
+           K_19                    390E 
+           K_20                    394A 
+           K_21                    39CA 
+           K_22                    3A0A 
+           K_23                    3A8A 
+           K_24                    3B0A 
+           K_25                    3B26 
+           K_26                    3BA6 
+           K_27                    3BE4 
+           K_28                    3C52 
+           K_29                    3CB2 
+           K_30                    3D32 
+           K_31                    3D9E 
+           K_32                    3DFE 
+           K_33                    3E38 
+           K_34                    3E52 
+           K_35                    3ED2 
+           K_36                    3F32 
+           K_37                    3FB2 
+           K_38                    4012 
+           K_39                    4092 
+           K_40                    4112 
+           K_41                    4192 
+           K_42                    41F2 
+           K_43                    4272 
+           K_44                    42AE 
+           K_45                    430E 
+           K_46                    434A 
+           K_47                    4366 
+           K_48                    43CA 
+           K_49                    442E 
+           K_50                    446E 
+           K_54                    44EE 
+           K_55                    452E 
+           K_56                    4548 
+           K_57                    4566 
+           K_64                    45A4 
+           K_65                    45E2 
+           K_66                    461E 
+           K_67                    469E 
+           K_68                    471E 
+           K_69                    473C 
+           K_70                    47BC 
+           K_71                    481A 
+           K_72                    4856 
+           K_73                    4872 
+           K_74                    48F2 
+           K_75                    492E 
+           K_76                    49A2 
+           K_77                    4A22 
+           String_SPEC_E           4A62 
+           String_RESULTS_E        4A72 
+           String_CHARGRETEST_E    4A82 
+           String_CELLBAD_E        4A8F 
+           String_RECHARGE_E       4A97 
+           String_INTR_E           4A9F 
+           String_LIFE_E           4AAF 
+           String_GOOD_E           4ABF 
+           String_BAD_E            4AC3 
+           String_NORMALV_E        4ACA 
+           String_CRANKV_E         4ADA 
+           String_BATTREPORT_E     4AEA 
+           String_soc_state_E      4AFC 
+           String_Customer_name_E
+                                   4B00 
+           String_Technician_name_E
+                                   4B09 
+           String_CHARGREPORT_E    4B14 
+           String_slv_E            4B26 
+           String_SPEC_T           4B38 
+           String_RESULTS_T        4B48 
+           String_CHARGRETEST_T    4B58 
+           String_CELLBAD_T        4B60 
+           String_RECHARGE_T       4B68 
+           String_INTR_T           4B6E 
+           String_LIFE_T           4B7E 
+           String_GOOD_T           4B8E 
+           String_BAD_T            4B92 
+           String_NORMALV_T        4B96 
+           String_CRANKV_T         4BA6 
+           String_BATTREPORT_T     4BB6 
+           String_soc_state_T      4BC8 
+           String_Customer_name_T
+                                   4BD0 
+           String_Technician_name_T
+                                   4BD7 
+           String_CHARGREPORT_T    4BDC 
+           String_slv_T            4BEE 
+           String_SPEC_J           4C00 
+           String_RESULTS_J        4C10 
+           String_CHARGRETEST_J    4C20 
+           String_CELLBAD_J        4C2E 
+           String_RECHARGE_J       4C36 
+           String_INTR_J           4C3C 
+           String_LIFE_J           4C4C 
+           String_GOOD_J           4C5C 
+           String_BAD_J            4C64 
+           String_NORMALV_J        4C68 
+           String_CRANKV_J         4C78 
+           String_BATTREPORT_J     4C88 
+           String_soc_state_J      4C9A 
+           String_Customer_name_J
+                                   4CA2 
+           String_Technician_name_J
+                                   4CA9 
+           String_CHARGREPORT_J    4CB0 
+           String_slv_J            4CC2 
+           String_SPEC_K           4CD4 
+           String_RESULTS_K        4CE4 
+           String_CHARGRETEST_K    4CF4 
+           String_CELLBAD_K        4CFE 
+           String_RECHARGE_K       4D06 
+           String_INTR_K           4D0E 
+           String_LIFE_K           4D1E 
+           String_GOOD_K           4D2E 
+           String_BAD_K            4D32 
+           String_NORMALV_K        4D36 
+           String_CRANKV_K         4D46 
+           String_dt_logo          4D56 
+           String_BATTREPORT_K     4D72 
+           String_Customer_name_K
+                                   4D88 
+           String_Technician_name_K
+                                   4D90 
+           String_CHARGREPORT_K    4D98 
+           String_slv_K            4DAE 
+           String_CCA              4DC4 
+           String_EN               4DC8 
+           String_DIN              4DCC 
+           String_IEC              4DD0 
+           String_M                4DD4 
+           String_V                4DD8 
+           String_p                4DDA 
+           String_3000RPM          4DDC 
+           String_2000RPM          4DEC 
+           String_1500RPM          4DFC 
+           String_1000RPM          4E0C 
+           String_MAX              4E1C 
+           String_MIN              4E20 
+           String_150V             4E24 
+           String_300V             4E2E 
+           String_133V             4E38 
+           String_266V             4E42 
+           String_135V             4E4C 
+           String_270V             4E56 
+           String_125V             4E60 
+           String_250V             4E6A 
+           String_92V              4E74 
+           String_155V             4E7B 
+           String_DOT              4E83 
+           String_0                4E84 
+           String_sp1_10           4E8E 
+           String_square           4E98 
+           String_square_spec      4E9A 
+           keyscan                 4E9C 
+           P1ISR                   4EB8 
+           scan                    4ECC 
+           next                    4ED2 
+           w3                      4EDA 
+           DU_1                    4EE2 
+           keyin                   4EF6 
+           r_p1int                 4F3A 
+           BEEP                    99D0 
+           wait_kb                 4F08 
+           time_on                 4F26 
+           time_off                4F2A 
+           key_time_out            4F36 
+           wait_relase             4F32 
+           KEY_INDEX               4F6E 
+           time_on_1               4F62 
+           PATTERNTABLE            4F7C 
+           SELECT_BATT_GENERATOR_brake
+                                   4F92 
+           cca_en_iec_din          4FCE 
+           CCA_INDEX               502A 
+           EN_INDEX                50A2 
+           DIN_INDEX               511A 
+           IEC_INDEX               5192 
+           JIS1_INDEX              520A 
+           JIS2_INDEX              5272 
+           LANGUE_SEL              52DA 
+           VOLTAGE_12V_24V_SEL     5342 
+           VRAI_AGM_SEL            5374 
+           KS3a                    4F92 
+           KS4a                    4FAA 
+           KS0a                    4FA8 
+           KS1a                    4FAA 
+           KS5a                    4FC4 
+           KS2a                    4FC2 
+           KS6a                    4FC4 
+           KS8a                    4FC4 
+           KS7a                    4FC6 
+           KS3                     4FCE 
+           KS1                     4FE8 
+           KS0                     4FE6 
+           ks4                     4FE8 
+           KS5                     5002 
+           KS2                     5000 
+           KS6                     5014 
+           KS7                     5022 
+           CCS0                    502A 
+           CCS2                    5048 
+           CCS1                    5046 
+           CCS4                    5066 
+           CCS3                    5064 
+           CCS6                    5084 
+           CCS5                    5082 
+           CCS7                    50A0 
+           EN0                     50A2 
+           EN2                     50C0 
+           EN1                     50BE 
+           EN4                     50DE 
+           EN3                     50DC 
+           EN6                     50FC 
+           EN5                     50FA 
+           EN7                     5118 
+           DIN0                    511A 
+           DIN2                    5138 
+           DIN1                    5136 
+           DIN4                    5156 
+           DIN3                    5154 
+           DIN6                    5174 
+           DIN5                    5172 
+           DIN7                    5190 
+           IEC0                    5192 
+           IEC2                    51B0 
+           IEC1                    51AE 
+           IEC4                    51CE 
+           IEC3                    51CC 
+           IEC6                    51EC 
+           IEC5                    51EA 
+           IEC7                    5208 
+           JIS10                   520A 
+           JIS12                   5222 
+           JIS11                   5220 
+           JIS14                   523E 
+           JIS13                   523C 
+           JIS16                   5256 
+           JIS15                   5254 
+           JIS17                   5270 
+           JIS20                   5272 
+           JIS22                   528A 
+           JIS21                   5288 
+           JIS24                   52A6 
+           JIS23                   52A4 
+           JIS26                   52BE 
+           JIS25                   52BC 
+           JIS27                   52D8 
+           KS3b                    52DA 
+           KS4b                    52F4 
+           KS0b                    52F2 
+           KS1b                    52F4 
+           KS5b                    530C 
+           KS2b                    530A 
+           KS6b                    531E 
+           KS7b                    533A 
+           KS8b                    5338 
+           KS3C                    5342 
+           KS4C                    535C 
+           KS0C                    535A 
+           KS1C                    535C 
+           KS2C                    5372 
+           KS3C_agm                5374 
+           KS4C_agm                538C 
+           KS0C_agm                538A 
+           KS1C_agm                538C 
+           KS2C_agm                53A4 
+           disbrakefluid_SEL       53A6 
+           KS3c                    53A6 
+           KS0c                    53A6 
+           KS1c                    53A6 
+           KS4c                    53A6 
+           KS2c                    53A6 
+           adc_0_nor               53A8 
+           SetupADC12              53A8 
+           adc_common              540C 
+           adc_common1             541A 
+           adc_1_nor               53B8 
+           adc_2_nor               53C8 
+           adc_3_nor               53D8 
+           delay_3ms               9A82 
+           adc_5_nor               53EC 
+           adc_10_nor              53FC 
+           testIFG_1_testmode      5426 
+           adc_0_avg               542E 
+           adc_avg_common          54BE 
+           adc_avg_0_loop1         5432 
+           adc_avg_common1         54C8 
+           adc_1_avg               5446 
+           adc_avg_1_loop1         544A 
+           adc_2_avg               545E 
+           adc_avg_2_loop1         5462 
+           adc_3_avg               5476 
+           adc_avg_3_loop1         547A 
+           adc_5_avg               548E 
+           adc_avg_5_loop1         5492 
+           adc_10_avg              54A6 
+           adc_avg_10_loop1        54AA 
+           ADC12_ISR               54DA 
+           BIN2BCD4                54E2 
+           BIN1                    54E8 
+           BCD_SWPB                54F8 
+           testmode                5562 
+           LCM_INITIAL             57C4 
+           testmode_1              557E 
+           DIS_ADC3                8102 
+           delay_500ms             9A72 
+           test_mode               C142 
+           DIS_CCA                 817A 
+           UNIT_CCA_2              76CC 
+           redis_MR                637E 
+           DIS_ADC1                8106 
+           adc3_drift              55CA 
+           adc3_drift_time_10      55D8 
+           adc3_drift_100          55D2 
+           DIS_ADC2                810A 
+           adc3_VAL_temp_adc3_VAL_temp1
+                                   5614 
+           adc3_ok                 5620 
+           adc3_ok_ok              5628 
+           write_flash_adc3_VAL_end
+                                   5632 
+           auto_power_adc3_MR_rate
+                                   DFA6 
+           auto_power_votage_rate
+                                   E056 
+           auto_power_mr_rate      E0A2 
+           CALCULATE_CCA_VAL       C32C 
+           WRITE_LCM_CS1           5658 
+           WRITE_INSTRUCTION_CS1   5720 
+           PR_CS1_UP               566E 
+           WRITE_DATA_CS1          575C 
+           PR_CS1_DOWN             568E 
+           WRITE_LCM_CS2           569A 
+           WRITE_INSTRUCTION_CS2   573E 
+           PR_CS2_UP               56B0 
+           WRITE_DATA_CS2          5782 
+           PR_CS2_DOWN             56D0 
+           WRITE_LCM_CS1_1         56DC 
+           PR_CS1_UP_1             56F2 
+           WRITE_LCM_CS2_1         56FE 
+           PR_CS2_UP_1             5714 
+           WORD_B_K                576E 
+           WORD_B_K_1              5794 
+           LCM_ON                  57A8 
+           LCM_OFF                 57B6 
+           CLS1_LCM                57DE 
+           CLS2_LCM                57FA 
+           logo                    5812 
+           eng                     5862 
+           logo_1                  5828 
+           PR_CS1_logo             5844 
+           PR_CS2_logo             5852 
+           display_v               5C62 
+           Write_SegA              5CA6 
+           Timing                  5CA6 
+           Erase_SegA              5CAC 
+           Prog_SegA               5CBC 
+           Prog_L1                 5CC2 
+           CopyA2B                 5CC4 
+           Erase_SegB              5CCC 
+           Prog_SegB               5CE0 
+           Prog_L2                 5CE6 
+           dislanguagesel          5CF8 
+           dislanguagesel_T        5E0E 
+           dislanguagesel_E        5D04 
+           dislanguagesel_J        5E74 
+           dislanguagesel_K        5EDC 
+           dislanguage             5F5A 
+           SEL_D                   5F68 
+           SEL_E                   5FDC 
+           SEL_j                   602C 
+           SEL_K                   605C 
+           disnopaper              606E 
+           nopaper_val_01          607C 
+           disnopaper_T            60F2 
+           disnopaper_E            608A 
+           disnopaper_J            6128 
+           disnopaper_K            6142 
+           disnoprint              6162 
+           disnoprint_T            61D4 
+           disnoprint_E            6170 
+           disnoprint_J            622A 
+           disnoprint_K            62D6 
+           re_display_battery      62F8 
+           DISPLAY4                73FA 
+           redis_cca               630C 
+           redis_en                6324 
+           redis_PERCEN            636E 
+           redis_din               633E 
+           UNIT_EN_2               772E 
+           redis_iec               6356 
+           UNIT_DIN_2              778E 
+           redis_unknow            6390 
+           UNIT_IEC_2              77FE 
+           DIS_100                 78A2 
+           redis_REPLACE           637A 
+           CALCULATE_GOOD_REPLACE
+                                   C5C0 
+           DIS_MR                  8204 
+           re_display_generator    63A2 
+           disgenerator_2000_rpm   8928 
+           DIS_gen_val_now         9320 
+           DIS_gen_val_max         908A 
+           DIS_gen_val_min         91D6 
+           re_display_slv          63CC 
+           disslv                  9A9E 
+           DIS_OCV                 9C82 
+           DIS_9_6V                9F72 
+           DIS_SLV                 9DFA 
+           DISPLAY1                63EE 
+           DISPLAY1_T              6562 
+           DISPLAY1_E              63FA 
+           DIS_CCA_EN_DIN_IEC_JIS_COM
+                                   677E 
+           SEL_24_E                64F8 
+           DISPLAY1_J              663C 
+           SEL_1                   6568 
+           SEL_2                   6576 
+           SEL_3                   6586 
+           SEL_4                   6596 
+           SEL_5                   65A6 
+           SEL_6                   65B4 
+           SEL_7                   65C4 
+           SEL_8                   65D4 
+           SEL_24                  65F8 
+           SEL_25                  660A 
+           SEL_26                  661A 
+           SEL_27                  662A 
+           DISPLAY1_K              66DA 
+           SEL_1J                  6644 
+           SEL_2J                  6652 
+           SEL_3J                  6662 
+           SEL_4J                  6672 
+           SEL_7J                  6682 
+           SEL_8J                  6692 
+           SEL_24J                 66B6 
+           SEL_25J                 66C8 
+           SEL_1K                  66DA 
+           SEL_7K                  6726 
+           SEL_8K                  6736 
+           SEL_24K                 676A 
+           SEL_9_E                 678C 
+           SEL_12_E                67CA 
+           SEL_14_E                67FA 
+           SEL_17_E                683A 
+           SEL_20_E                687A 
+           DISPLAY2                68AA 
+           DISPLAY2_T              6B1A 
+           DISPLAY2_E              68B6 
+           ENTER_PRESS_E           6A00 
+           DISPLAY2_J              6C8C 
+           ENTER_PRESS_T           6BE2 
+           DISPLAY2_K              6DBE 
+           ENTER_PRESS_J           6D38 
+           ENTER_PRESS_K_1         6E70 
+           DISPLAY5                6EA6 
+           DISPLAY5_T              71AC 
+           DISPLAY5_E              6EB2 
+           DISPLAY5_J              72A2 
+           DISPLAY5_K              737A 
+           DISPLAY4_T              7472 
+           DISPLAY4_E              7404 
+           DISPLAY4_J              74BA 
+           DISPLAY4_K              74E4 
+           DISPLAY7                74F6 
+           DISPLAY7_T              75C2 
+           DISPLAY7_E              7500 
+           DISPLAY7_J              7648 
+           DISPLAY7_K              7682 
+           UNIT_CCA                7694 
+           UNIT_EN                 7704 
+           UNIT_DIN                7756 
+           UNIT_IEC                77C6 
+           UNIT_JIS                7836 
+           UNIT_JIS_2              786C 
+           DIS_100_T               78EE 
+           DIS_100_E               78B0 
+           DIS_100_UNMBER          794A 
+           DIS_100_J               7914 
+           DIS_100_K               793C 
+           DIS_100_1               796A 
+           SCAN_0_9                9A0E 
+           DIS_100_2               797C 
+           DIS_100_3               798E 
+           DIS_100_4               799A 
+           DIS_PASS                79BE 
+           DIS_PASS_T              7A14 
+           DIS_PASS_E              79CA 
+           DIS_PASS_J              7A4A 
+           DIS_PASS_K              7A92 
+           DIS_WARNING             7AA4 
+           DIS_WARNING_T           7B28 
+           DIS_WARNING_E           7AB0 
+           DIS_WARNING_J           7B6E 
+           DIS_WARNING_K           7BB6 
+           DIS_REPLACE             7BF6 
+           DIS_REPLACE_T           7C92 
+           DIS_REPLACE_E           7C02 
+           DIS_REPLACE_J           7CDC 
+           DIS_REPLACE_K           7D18 
+           DIS_CHARGE_RETEST       7D2E 
+           DIS_CHARGE_RETEST_T     7E04 
+           DIS_CHARGE_RETEST_E     7D3C 
+           DIS_CHARGE_RETEST_J     7E4A 
+           DIS_CHARGE_RETEST_K     7EA2 
+           DIS_CHARGE              7EC2 
+           DIS_CHARGE_T            7F4C 
+           DIS_CHARGE_E            7ED0 
+           DIS_CHARGE_J            7F82 
+           DIS_CHARGE_K            7FBA 
+           DIS_CELL_BAD            7FCA 
+           DIS_CELL_BAD_T          8060 
+           DIS_CELL_BAD_E          7FD8 
+           DIS_CELL_BAD_J          80A6 
+           DIS_CELL_BAD_K          80EE 
+           DIS_ADC3_rate           80FE 
+           DIS_ADC_COM             810E 
+           DIS_CCA_rate            8176 
+           DIS_CCA_COM             817C 
+           DIS_CCA_1               819A 
+           DIS_CCA_2               81AE 
+           DIS_CCA_3               81C0 
+           DIS_CCA_4               81D2 
+           DIS_CCA_5               81E4 
+           DIS_CCA_6               81F0 
+           DIS_MR_T                82A4 
+           DIS_MR_E                8210 
+           DIS_MR_NUMBER           8300 
+           DIS_MR_J                82CA 
+           DIS_MR_K                82F2 
+           DIS_MR_5                831C 
+           DIS_MR_6                8332 
+           DIS_MR_1                8346 
+           DIS_MR_2                835A 
+           DIS_MR_3                836E 
+           DIS_MR_4                837C 
+           DISPLAY3                83DE 
+           DISPLAY3_1              8400 
+           DISPLAY3_2              8418 
+           DISPLAY3_3              8430 
+           DISPLAY3_4              8436 
+           DISPLAY3_5              844C 
+           DIS_TEST                8464 
+           DIS_TEST_1              8478 
+           disgenerator            8486 
+           disgenerator_T          8636 
+           disgenerator_E          8492 
+           disgenerator_J          8718 
+           disgenerator_K          87FE 
+           ENTER_PRESS_K_2         881C 
+           disgenerator_3000_rpm   8852 
+           disgenerator_3000_rpm_24v
+                                   88C2 
+           disgenerator_2000_rpm_24v
+                                   8998 
+           dis_enter_test          89FE 
+           dis_enter_test_T        8A12 
+           dis_enter_test_E        8A0C 
+           dis_enter_test_J        8A1E 
+           dis_enter_test_K        8A2C 
+           disgenerator_val        8A32 
+           disgenerator_val_T      8BEE 
+           disgenerator_val_E      8A3E 
+           disgenerator_val_J      8CC0 
+           disgenerator_val_K      8DCC 
+           DIS_gen_max             8E00 
+           DIS_30_0V_NUMBER_COM_24V
+                                   8EFA 
+           DIS_15_0V_NUMBER_COM_12V
+                                   8EAE 
+           DIS_gen_min             8F46 
+           DIS_26_6V_NUMBER_COM_24V
+                                   903E 
+           DIS_13_3V_NUMBER_COM_12V
+                                   8FF2 
+           DIS_27_0V_NUMBER_COM_24V
+                                   9188 
+           DIS_13_5V_NUMBER_COM_12V
+                                   913A 
+           DIS_25_0V_NUMBER_COM_24V
+                                   92D2 
+           DIS_12_5V_NUMBER_COM_12V
+                                   9284 
+           disselectitem           938E 
+           disselectitem_T         9612 
+           disselectitem_E         939A 
+           SEL_F                   947A 
+           SEL_G                   94F2 
+           SEL_H                   9598 
+           disselectitem_J         9736 
+           SEL_A                   96A2 
+           SEL_B                   96D0 
+           SEL_C                   9712 
+           disselectitem_K         9904 
+           SEL_AJ                  97C8 
+           SEL_BJ                  9824 
+           SEL_CJ                  98A2 
+           SEL_AK                  997E 
+           SEL_BK                  999C 
+           SEL_CK                  99BC 
+           SetupC0                 99D6 
+           SetupTA                 99E2 
+           TA0_ISR                 99EE 
+           t_e                     9A0C 
+           SCAN_0_9_TABLE          9A1A 
+           SCAN_0                  9A2E 
+           SCAN_1                  9A34 
+           SCAN_2                  9A3A 
+           SCAN_3                  9A40 
+           SCAN_4                  9A46 
+           SCAN_5                  9A4C 
+           SCAN_6                  9A52 
+           SCAN_7                  9A58 
+           SCAN_8                  9A5E 
+           SCAN_9                  9A64 
+           delay_1s                9A6A 
+           delay_100us             9A8A 
+           delay_50ms              9A7A 
+           d_1                     9A8A 
+           d_2                     9A90 
+           disslv_T                9B86 
+           disslv_E                9AAA 
+           disslv_J                9BDC 
+           disslv_K                9C44 
+           DIS_OCV_T               9D60 
+           DIS_OCV_E               9C8E 
+           DIS_OCV_NUMBER_COM      9CF8 
+           DIS_OCV_J               9DAA 
+           DIS_OCV_K               9DE6 
+           DIS_SLV_T               9EC8 
+           DIS_SLV_E               9E06 
+           DIS_SLV_NUMBER_COM      9E60 
+           DIS_SLV_J               9F12 
+           DIS_SLV_K               9F5E 
+           DIS_9_6V_T              A08A 
+           DIS_9_6V_E              9F80 
+           DIS_9_6V_NUMBER_COM     9FDA 
+           DIS_9_6V_NUMBER_COM_24V
+                                   A02E 
+           DIS_9_6V_NUMBER_COM_12V
+                                   9FE4 
+           DIS_9_6V_J              A0D4 
+           DIS_9_6V_K              A120 
+           dis_detect_connect_black_LINE
+                                   A134 
+           dis_detect_connect_black_T
+                                   A2B6 
+           dis_detect_connect_black_E
+                                   A140 
+           dis_detect_connect_black_J
+                                   A382 
+           dis_detect_connect_black_K
+                                   A434 
+           dis_detect_connect_red_LINE
+                                   A4A6 
+           dis_detect_connect_red_T
+                                   A60A 
+           dis_detect_connect_red_E
+                                   A4B2 
+           dis_detect_connect_red_J
+                                   A6D6 
+           dis_detect_connect_red_K
+                                   A788 
+           dis_detect_engine_LINE
+                                   A7FA 
+           dis_detect_engine_T     AA90 
+           dis_detect_engine_E     A806 
+           dis_detect_engine_J     ABC6 
+           dis_detect_engine_K     AD12 
+           dis_detect_low_voltage_LINE
+                                   AD72 
+           dis_detect_low_voltage_T
+                                   AF36 
+           dis_detect_low_voltage_E
+                                   AD7E 
+           dis_detect_low_voltage_J
+                                   B00A 
+           dis_detect_low_voltage_K
+                                   B0D8 
+           dis_detect_surface_LINE
+                                   B11C 
+           dis_detect_surface_T    B31A 
+           dis_detect_surface_E    B128 
+           dis_detect_surface_J    B3C2 
+           dis_detect_surface_K    B45C 
+           dis_light_off_LINE      B4AC 
+           dis_light_off_T         B7AA 
+           dis_light_off_E         B4B8 
+           dis_light_off_J         B932 
+           dis_light_off_K         BA00 
+           disselvoltage_12_24     BA42 
+           disselvoltage_12_24_T   BB48 
+           disselvoltage_12_24_E   BA4E 
+           disselvoltage_12_24_J   BBAE 
+           disselvoltage_12_24_K   BC16 
+           dis_12v_24v             BC94 
+           SEL_12v                 BCA6 
+           SEL_24v                 BCE0 
+           disagm                  BD0A 
+           disagm_T                BE9A 
+           disagm_E                BD16 
+           SEL_28_E                BE0E 
+           DIS_AGM_EFB_COM         C09C 
+           disagm_J                BF4C 
+           SEL_28                  BF2A 
+           disagm_K                BFE2 
+           SEL_28J                 BFC0 
+           SEL_28K                 C06E 
+           SEL_29K                 C0AA 
+           SEL_30k                 C0EC 
+           TEST                    C11E 
+           TEST_L4                 C132 
+           testmode_y_0            C14C 
+           testmode_y_1            C186 
+           TEST_L1                 C198 
+           auto_rang_adc_4_1       C1AE 
+           testIFG                 C1B2 
+           auto_rang_adc_4_2       C1CE 
+           testIFG_1               C1D2 
+           auto_rang_adc_4_3       C1EC 
+           auto_rang_adc_4_4       C1F8 
+           TEST_L2                 C270 
+           auto_rang_sel           C2A0 
+           auto_rang_sel_1         C2A8 
+           auto_powe_bypass        C32C 
+           CALCULATE_cca_24vx2     C348 
+           CALCULATE_cca_12vx1     C350 
+           not_agm                 C3BA 
+           EFB                     C3B2 
+           AGM                     C3A8 
+           e                       E124 
+           f                       E128 
+           CCA_OVER_9999           C3D8 
+           CCA_NOR                 C3DE 
+           EN_CALCULATE            C3E6 
+           a                       E114 
+           b                       E118 
+           c                       E11C 
+           EN_P                    C46C 
+           PER1                    C4C2 
+           DIN_P                   C47E 
+           IEC_P                   C48E 
+           JIS1_P                  C4A0 
+           JIS2_P                  C4B2 
+           EN_P_K                  C502 
+           PER2                    C558 
+           DIN_P_K                 C514 
+           IEC_P_K                 C524 
+           JIS1_P_K                C536 
+           JIS2_P_K                C548 
+           TESTEND                 C6FA 
+           d                       E120 
+           PERCEN_OVER             C5BA 
+           PERCEN                  C5C0 
+           voltage_24v_adc3_2      C5D0 
+           voltage_12v_adc3        C5D2 
+           DISPLAY_GOOD_OR_REPLACE_24V
+                                   C6FC 
+           GOOD_OR_BAD             C688 
+           CELL_BAD                C672 
+           CHARGE_RETEST_REPLACE   C6AC 
+           PASS                    C6E2 
+           CHARGE_RETEST           C6D4 
+           GOOD_OR_BAD_24V         C722 
+           CELL_BAD_24V            C70C 
+           CHARGE_RETEST_REPLACE_24V
+                                   C746 
+           TESTEND_24V             C794 
+           PASS_24V                C77C 
+           CHARGE_RETEST_24V       C76E 
+           print                   C796 
+           print_have              C796 
+           SetupP3                 CFCA 
+           print_con               C79E 
+           print_data              C7C8 
+           print_con_com           C7AE 
+           print_cancel            C7C6 
+           print_constant          D00A 
+           PRINT_ITEM_TABLE        C816 
+           print_battery           C81C 
+           print_generator         CB26 
+           print_slv_repeat        CB24 
+           print_battery_T         C8C2 
+           print_battery_E         C822 
+           print_word_table        CFF8 
+           print_not_spec_1_E      C83E 
+           print_cca_en_din_iec_key_val
+                                   D088 
+           print_cca_en_din_iec_unit
+                                   D10E 
+           print_sp_1_line         D366 
+           print_not_spec_2_E      C85A 
+           print_good_bad_e        D228 
+           print_number_0_9        D018 
+           print_cca_en_din_iec_val
+                                   D0C4 
+           print_res               D156 
+           print_not_spec_3_E      C8B8 
+           print_charge_cellbad_e
+                                   D320 
+           print_soc_square_com    CAF4 
+           print_battery_J         C968 
+           print_not_spec_1_t      C8E4 
+           print_not_spec_2_t      C900 
+           print_good_bad_t        D1C2 
+           print_not_spec_3_t      C95E 
+           print_charge_cellbad_t
+                                   D24C 
+           print_battery_K         CA10 
+           print_not_spec_1_J      C98C 
+           print_not_spec_2_J      C9A8 
+           print_good_bad_J        D1E4 
+           print_not_spec_3_J      CA06 
+           print_charge_cellbad_J
+                                   D292 
+           print_sp_2_line         D370 
+           print_not_spec_1_K      CA70 
+           print_not_spec_2_K      CA8C 
+           print_good_bad_K        D206 
+           print_not_spec_3_K      CAEA 
+           print_charge_cellbad_K
+                                   D2DA 
+           print_square_caculate_life
+                                   DA62 
+           print_square_loop       DD2A 
+           print_square_caculate_soc
+                                   DAC6 
+           print_Customer_name     CF42 
+           print_over_3_line       D382 
+           print_slv_repeat_1      CB4C 
+           print_generator_T       CB32 
+           print_generator_E       CB2C 
+           PRINT_e_number_COM      CB98 
+           print_generator_J       CB3E 
+           print_generator_K       CB4E 
+           print_slv               CD4E 
+           PRINT_3000_1500_COM     CCCA 
+           PRINT_150v_300v_COM     CCE0 
+           PRINT_133v_266v_COM     CCF6 
+           print_square_caculate_generator_3000
+                                   DB5C 
+           PRINT_2000_1000_COM     CD0C 
+           PRINT_135v_270v_COM     CD22 
+           PRINT_125v_250v_COM     CD38 
+           print_square_caculate_generator_2000
+                                   DBF8 
+           print_24v_1500          CCDA 
+           print_12v_3000          CCDE 
+           PRINT_300v              CCF0 
+           PRINT_150v              CCF4 
+           PRINT_266v              CD06 
+           PRINT_133v              CD0A 
+           PRINT_1000rpm           CD1C 
+           PRINT_2000rpm           CD20 
+           PRINT_270v              CD32 
+           PRINT_135v              CD36 
+           PRINT_250v              CD48 
+           PRINT_125v              CD4C 
+           print_slv_T             CDAE 
+           print_slv_E             CD54 
+           PRINT_9V2_15V5_COM      CF0E 
+           print_slv_J             CE0E 
+           print_slv_K             CE70 
+           String_24V              CF1E 
+           String_pass             CF24 
+           print_square_caculate_slv
+                                   DC94 
+           print_Customer_name_T   CF66 
+           print_Customer_name_E   CF48 
+           print_Customer_name_J   CF8A 
+           print_Customer_name_K   CFB0 
+           SetupUART0              CFD0 
+           TX1                     CFF8 
+           TX2                     D00A 
+           print_num_1             D036 
+           print_num_2             D03C 
+           print_num_3             D048 
+           dot_not                 D05A 
+           print_num_5             D06E 
+           print_num_4             D068 
+           print_num_6             D07A 
+           print_en_key_val        D098 
+           print_cca_en_din_iec_key_val_end
+                                   D0BE 
+           print_din_key_val       D0A6 
+           print_iec_key_val       D0B2 
+           print_cca_en_din_iec_key_val_not
+                                   D0C2 
+           print_en_val            D0D4 
+           print_cca_en_din_iec_val_end
+                                   D108 
+           print_din_val           D0E2 
+           print_iec_val           D0EE 
+           print_unkno_val         D0FC 
+           print_cca_en_din_iec_val_not
+                                   D10C 
+           print_en_unit           D11C 
+           print_cca_en_din_iec_unit_end
+                                   D150 
+           print_din_unit          D12A 
+           print_iec_unit          D136 
+           print_unkno_unit        D144 
+           print_cca_en_din_iec_unit_not
+                                   D154 
+           print_MR_1              D176 
+           print_MR_2              D17C 
+           print_MR_3              D188 
+           print_good_bad_t_bad    D1D0 
+           print_good_bad_t_end    D1DE 
+           print_good_bad_t_not    D1E2 
+           print_good_bad_J_bad    D1F2 
+           print_good_bad_J_end    D200 
+           print_good_bad_J_not    D204 
+           print_good_bad_K_bad    D214 
+           print_good_bad_K_end    D222 
+           print_good_bad_K_not    D226 
+           print_good_bad_e_bad    D236 
+           print_good_bad_e_end    D246 
+           print_good_bad_e_not    D24A 
+           print_charge_cellbad_t_restest
+                                   D25C 
+           print_charge_cellbad_t_end
+                                   D278 
+           print_charge_cellbad_t_cellbad
+                                   D26A 
+           print_charge_cellbad_t_not
+                                   D27E 
+           print_charge_cellbad_J_restest
+                                   D2A2 
+           print_charge_cellbad_J_end
+                                   D2C0 
+           print_charge_cellbad_J_cellbad
+                                   D2B2 
+           print_charge_cellbad_J_not
+                                   D2C6 
+           print_charge_cellbad_K_restest
+                                   D2E8 
+           print_charge_cellbad_K_end
+                                   D306 
+           print_charge_cellbad_K_cellbad
+                                   D2F8 
+           print_charge_cellbad_K_not
+                                   D30C 
+           print_charge_cellbad_e_restest
+                                   D32E 
+           print_charge_cellbad_e_end
+                                   D34C 
+           print_charge_cellbad_e_cellbad
+                                   D33E 
+           print_charge_cellbad_e_not
+                                   D352 
+           USART0TX_ISR            D39C 
+           Done                    D39C 
+           USART0RX_ISR            D39E 
+           USART_Done              D39E 
+           generator               D3A0 
+           generator_L1            D3B0 
+           SELECT_BATT_GENERATOR_rep2
+                                   D5AC 
+           generator_max_min_test
+                                   D3C8 
+           gen_max                 D3E2 
+           gen_max_L1              D408 
+           generator_val           D47E 
+           gen_min                 D454 
+           generator_val_L1        D48A 
+           generator_val_max_min_test
+                                   D4A2 
+           gen_val_max             D4B8 
+           gen_val_max_L1          D4DE 
+           print_gener_start       D554 
+           gen_val_min             D52A 
+           generator_print_end     D57A 
+           generator_print_re_display_generator
+                                   D56E 
+           SELECT_BATT_GENERATOR   E230 
+           LANGUAGE_SEL            D5B0 
+           LAN_1                   D5BC 
+           LAN_2                   D5D2 
+           write_flash             D5E2 
+           pp_1                    D5D8 
+           LAN_T                   D5F2 
+           write_flash_LANG_VAL    D658 
+           LAN_J                   D604 
+           LAN_K                   D618 
+           LANGUAGE_SEL_ESC        D62A 
+           LANGUAGE_SEL_ESC_L1     D63A 
+           SELECT_BATT_GENERATOR_rep3
+                                   D69A 
+           slv                     D69E 
+           slv_L1                  D6DA 
+           slv_L2                  D6DA 
+           print_slv_start         D71A 
+           SELECT_BATT_GENERATOR_rep4
+                                   D772 
+           slv_print_end           D740 
+           slv_print_re_display_slv
+                                   D734 
+           battery                 D776 
+           batt_loop1              D792 
+           SELECT_BATT_GENERATOR_rep1
+                                   D7DE 
+           detect_connect          DD58 
+           detect_connect_engine   DD74 
+           KEYTABLE                D7C6 
+           CCA                     D7E2 
+           EN                      D89E 
+           DIN                     D908 
+           IEC                     D970 
+           JIS1                    D9DA 
+           JIS3                    DA0E 
+           CCA_L1                  D7F2 
+           battery_rep1            DA32 
+           CCA_L2                  D822 
+           CCA_END                 D82E 
+           print_battery_start     D84A 
+           battery_print_end       D86C 
+           battery_print_re_display_battery
+                                   D864 
+           EN_L1                   D8B0 
+           EN_L2                   D8E0 
+           EN_END                  D8EC 
+           DIN_L1                  D918 
+           DIN_L2                  D948 
+           DIN_END                 D954 
+           IEC_L1                  D982 
+           IEC_L2                  D9B2 
+           IEC_END                 D9BE 
+           JIS1_L1                 D9EC 
+           JIS_L2                  DA04 
+           JIS3_L1                 DA20 
+           JIS3_L2                 DA30 
+           adc10_tempture          DA36 
+           soc_12v                 DADE 
+           soc_PERCEN_continue     DAE4 
+           soc_PERCEN_less         DAEA 
+           soc_PERCEN              DAF8 
+           soc_PERCEN_OVER         DAF2 
+           rpm3000_132v            DB7A 
+           generator_PERCEN_less_3000
+                                   DB86 
+           generator_PERCEN_3000   DB94 
+           generator_PERCEN_OVER_3000
+                                   DB8E 
+           rpm2000_124v            DC16 
+           generator_PERCEN_less_2000
+                                   DC22 
+           generator_PERCEN_2000   DC30 
+           generator_PERCEN_OVER_2000
+                                   DC2A 
+           slv_12v                 DCAC 
+           slv_PERCEN_continue     DCB2 
+           slv_PERCEN_less         DCB8 
+           slv_PERCEN              DCC6 
+           slv_PERCEN_OVER         DCC0 
+           print_square_spec_loop
+                                   DD40 
+           print_square_spec_end   DD56 
+           dis_detect_connect_black
+                                   DDD8 
+           dis_detect_connect_red
+                                   DE00 
+           engine_24V              DD92 
+           dis_detect_engine       DE28 
+           detect_connect_low_voltage
+                                   DD9A 
+           detect_connect_surface
+                                   DDB8 
+           low_voltage_24V         DDB0 
+           dis_detect_low_voltage
+                                   DE6E 
+           detect_connect_surface_1
+                                   DDD6 
+           surface_24V             DDCE 
+           dis_detect_surface      DED6 
+           black                   DDE0 
+           red                     DE08 
+           engine                  DE30 
+           engine_L1               DE48 
+           SELECT_12V_24V_rep1     DFA2 
+           engine_L1_24V           DE60 
+           engine_L1_12V_jmp_point
+                                   DE68 
+           low_voltage             DE7E 
+           low_voltage_1           DECC 
+           detect_low_voltage_24V
+                                   DEBA 
+           low_voltage_12V_jmp_poin
+                                   DEC2 
+           surface_b               DEE2 
+           surface                 DEEC 
+           surface_time_out        DF5C 
+           surface_L1              DF16 
+           engine_surface_24V      DF34 
+           surface_1               DF78 
+           engine_surface_24V_jmp_point
+                                   DF3C 
+           detect_end              DF88 
+           engine_surface_24V_2    DF54 
+           dis_light_off           DF98 
+           surface_2               DF6A 
+           SELECT_12V_24V          E1FA 
+           g                       E12C 
+           h                       E130 
+           MAIN                    E134 
+           StopWDT                 E138 
+           SetupP1                 E13E 
+           nor_mode                E192 
+           E_C                     E196 
+           ENGLISH_TAIWAN_pass_1   E1EC 
+           ENGLISH_TAIWAN_pass     E1F6 
+           SELECT_12V_24V_loop     E210 
+           SELECTLOOP              E244 
+           KEYTABLEa               E26E 
+           SELECT_VRAL_AGM         E27A 
+           SELECT_VRAL_AGM_loop    E290 
+           LANGUAGE_SEL_ESC_rep1   E2B8 
+
+
+
+                ****************************************
+                *                                      *
+                *      SEGMENTS IN ADDRESS ORDER       *
+                *                                      *
+                ****************************************
+
+
+SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
+=======              =====    =============   ===========     ====  ====  =====
+                                       1100 - E2BB            D1BC  aseg  
+                                       FFE8 - FFE9               2  aseg  
+                                       FFEC - FFF3               8  aseg  
+                                       FFFE - FFFF               2  aseg  
+
+                ****************************************
+                *                                      *
+                *        END OF CROSS REFERENCE        *
+                *                                      *
+                ****************************************
+
+ 0 bytes of CODE memory (+ 53 704 absolute )
+
+Errors: none
+Warnings: none
+

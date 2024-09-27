@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userOverrides>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24\bbpprog\battbrake.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all\bbpprog\batterytestset.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all\bbpprog\battprint.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all\bbpprog\keyscan.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all\bbpprog\printtable.s43</path>
+        <encoding>System</encoding>
+    </override>
+</userOverrides>

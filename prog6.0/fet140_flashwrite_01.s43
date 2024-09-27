@@ -1,0 +1,62 @@
+;*****************************************************************
+;範例  INFO FALSH WRITE
+;***********************************************************
+;    call   #Write_SegA  
+;********************************
+; Write_SegA  
+;        
+;Timing      mov.w   #FWKEY+FSSEL0+FN0,&FCTL2 ; *Timing generator = MCLK/2
+
+;Erase_SegA  mov.w   #FWKEY,&FCTL3           ; Lock = 0      
+;            mov.w   #FWKEY+ERASE,&FCTL1     ; Erase bit=1 MERAS 殺主flash Enable bit for Flash mass erase */: ,
+                                             ; ERASE/* 殺INFO 段A與段B Enable bit for Flash segment erase */MERAS+ERASE就是全殺 
+;            mov.w    #0,&01080h             ;  假erase 啟動段B (&01000h)殺 ,假erase 啟動段A(&01080h),先殺才能寫 
+;           
+;Prog_SegA   mov.w   #FWKEY+WRT,&FCTL1       ; Write bit = 1 執行此行後才能寫  ,寫
+;Prog_L1     mov     #04,&01080h
+;            mov.w   #FWKEY+LOCK,&FCTL3      ; Lock = 1   寫後結束
+
+;            ret         
+
+;------------------------------------------------------------------------------
+Write_SegA ;Input = value, holds value to write to Seg A, R5 used as working reg.
+;------------------------------------------------------------------------------           
+Timing      mov.w   #FWKEY+FSSEL0+FN0,&FCTL2 ; *Timing generator = MCLK/2
+Erase_SegA  mov.w   #FWKEY,&FCTL3           ; Lock = 0
+            mov.w   #FWKEY+ERASE,&FCTL1     ; Erase bit = 1 MERAS Enable bit for Flash mass erase */:  ERASE/* Enable bit for Flash segment erase */
+            mov.w   #0,&01080h              ; 假erase Dummy write to SegA to erase
+            ;ret
+;--------------------------------------------------------          
+Prog_SegA   mov.w   #FWKEY+WRT,&FCTL1       ; Write bit = 1 開始寫
+Prog_L1     ;mov.b   value,0(R5)             ;
+            ;inc.w   R5                      ;
+            ;cmp.w   #01100h,R5              ;
+            ;jne     Prog_L1                 ;
+            ;mov.w   #FWKEY+LOCK,&FCTL3      ; Lock = 1  結束寫
+            ;mov.w   #CCIE,&TBCCTL0          ; CCR0 interrupt enabled
+            ;EINT
+            ret                             ;
+                                            ;
+;------------------------------------------------------------------------------
+CopyA2B    ;Copy Seg A to Seg B, R5 used as working reg.
+;------------------------------------------------------------------------------
+            DINT 
+            mov.w   #FWKEY+FSSEL0+FN1,&FCTL2  ; *Timing generator = MCLK/3
+Erase_SegB  mov.w   #FWKEY,&FCTL3           ; Lock = 0
+            mov.w   #FWKEY+ERASE,&FCTL1     ; Erase bit = 1
+            mov.w   #0,&01000h              ; Dummy write to SegB to erase
+            mov.w   #01080h,R5              ; R5 = First byte in Seg A
+Prog_SegB   mov.w   #FWKEY+WRT,&FCTL1       ; Write bit = 1
+Prog_L2     mov.b   @R5+,-129(R5)           ; Copy Seg A to Seg B
+            cmp.w   #01100h,R5              ;
+            jne     Prog_L2                 ;
+            mov.w   #FWKEY+LOCK,&FCTL3      ; Lock = 1
+            ret
+
+;-----------------------------------------------------------------------------
+;           Interrupt Vectors
+;-----------------------------------------------------------------------------
+;            ORG     0FFFEh                  ; MSP430 RESET Vector
+;            DW      RESET                   ;
+;            END
+

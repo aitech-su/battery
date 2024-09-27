@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userOverrides>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor\bbpprog\slv.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disnumber.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\keyscan.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\slv.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\0-9.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\battery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\detect.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disagm.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disbattery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disbattgenerator.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disdetect.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disgenerator.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\dislanguage.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disnopaper.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disnumber.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disselvotage.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disslv.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\disver.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\generatortest.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\keyscan.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\languagesel.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\print.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\printsquarecalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\slv.s43</path>
+        <encoding>System</encoding>
+    </override>
+</userOverrides>

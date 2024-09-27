@@ -1,0 +1,321 @@
+;*******************************************************
+;msp430 LCM PIN DEFINE								
+;*************************************************
+
+ 
+;****************************************
+;LCM REG
+;****************************************
+;ON			equ		3FH
+;OFF			equ		3EH
+;STAR_LINE0		equ		0C0H            ;起始點在最底下,0C0H處,最高在0FFH處   
+;PAGE0			equ		0B8H
+;Y_ADDRESS0		equ		40H    
+
+;#define   Y_PAGE      r14
+;#define   Y_ADDRESS   r13
+;#define   TABLE       r12
+;#define   WORD_WIDE   r11
+;#define   LCMTEMP     r9
+;*******************************************************
+
+;lcm輸入說明
+
+;************************************************
+;*例                                            *
+;*		MOV		A,KEY_VAL1	*		;輸入反白的值		
+;*		CJNE		A,#0,SEL_1      *
+;*		MOV		R7,#1		*		;設定1代表black				
+;*SEL_1:	MOV		Y_PAGE,#0	*		;輸入pageg上下(0-7)
+;*		MOV		Y_ADDRESS,#0	*		;輸入address上下(0-63)
+;*		MOV		WORD_WIDE,#16	*		;輸入字的寬度
+;*		MOV		DPTR,#W_4	*		;取出字的table
+;*		CALL		WRITE_LCM_CS1	*		;將字顯示在cs1上
+;************************************************
+
+;*********************************************************
+;use resgister  r8	R8,WORD_WIDE
+;		r4	LCM_INITIAL使用
+;		r5	LCM_INITIAL使用
+;		r6	LCM_INITIAL使用
+;		r10	判斷是否要反白?	r10=1 反白
+;*********************************************************
+
+;*********************************************************
+;WRITE LCM CS1   2 PAGE
+;*********************************************************
+
+WRITE_LCM_CS1:
+;;		MOV		A,#STAR_LINE0
+;;		CALL		WRITE_INSTRUCTION_CS1
+		MOV.B		#PAGE0,LCMTEMP
+		ADD		Y_PAGE,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1
+		MOV.B		#Y_ADDRESS0,LCMTEMP
+		ADD		Y_ADDRESS,LCMTEMP	
+		CALL		#WRITE_INSTRUCTION_CS1
+		  			
+		MOV.b		WORD_WIDE,r8				
+;	        CLR		r7
+PR_CS1_UP:	MOV.b		@TABLE+,LCMTEMP
+ 		CALL		#WRITE_DATA_CS1
+;		INC		r7
+		dec             r8
+		JNZ		PR_CS1_UP
+
+		MOV.b		#PAGE0+1,LCMTEMP
+		ADD		Y_PAGE,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1
+		MOV.b		#Y_ADDRESS0,LCMTEMP
+		ADD		Y_ADDRESS,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1	
+			
+		MOV.b		WORD_WIDE,r8
+PR_CS1_DOWN:	
+		MOV.b		@TABLE+,LCMTEMP	
+ 		CALL		#WRITE_DATA_CS1
+ 		dec             r8
+		JNZ		PR_CS1_DOWN
+		RET
+;*********************************************************
+;WRITE LCM CS2     2 PAGE
+;*********************************************************
+
+WRITE_LCM_CS2:
+;;		MOV		A,#STAR_LINE0
+;;		CALL		WRITE_INSTRUCTION_CS2
+		MOV.B		#PAGE0,LCMTEMP
+		ADD		Y_PAGE,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS2
+		MOV.B		#Y_ADDRESS0,LCMTEMP
+		ADD		Y_ADDRESS,LCMTEMP	
+		CALL		#WRITE_INSTRUCTION_CS2
+					
+		MOV.b		WORD_WIDE,r8				
+;	        CLR		r7
+PR_CS2_UP:	MOV.b		@TABLE+,LCMTEMP	
+ 		CALL		#WRITE_DATA_CS2
+;		INC		r7
+		dec             r8
+		JNZ		PR_CS2_UP
+
+		MOV.b		#PAGE0+1,LCMTEMP
+		ADD		Y_PAGE,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS2
+		MOV.b		#Y_ADDRESS0,LCMTEMP
+		ADD		Y_ADDRESS,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS2	
+			
+		MOV.b		WORD_WIDE,r8
+PR_CS2_DOWN:	
+		MOV.b		@TABLE+,LCMTEMP	
+ 		CALL		#WRITE_DATA_CS2
+ 		dec             r8
+		JNZ		PR_CS2_DOWN
+		RET
+
+;*********************************************************
+;WRITE LCM CS1  1 PAGE
+;*********************************************************
+
+WRITE_LCM_CS1_1
+;;		MOV		A,#STAR_LINE0
+;;		CALL		WRITE_INSTRUCTION_CS1
+		MOV.B		#PAGE0,LCMTEMP
+		ADD		Y_PAGE,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1
+		MOV.B		#Y_ADDRESS0,LCMTEMP
+		ADD		Y_ADDRESS,LCMTEMP	
+		CALL		#WRITE_INSTRUCTION_CS1
+					
+		MOV.b		WORD_WIDE,r8				
+;	        CLR		r7
+PR_CS1_UP_1	MOV.b		@TABLE+,LCMTEMP
+ 		CALL		#WRITE_DATA_CS1
+;		INC		r7
+		dec             r8
+		JNZ		PR_CS1_UP_1
+			
+		RET
+;*********************************************************
+;WRITE LCM CS2    1 PAGE
+;*********************************************************
+
+WRITE_LCM_CS2_1
+;;		MOV		A,#STAR_LINE0
+;;		CALL		WRITE_INSTRUCTION_CS2
+		MOV.B		#PAGE0,LCMTEMP
+		ADD		Y_PAGE,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS2
+		MOV.B		#Y_ADDRESS0,LCMTEMP
+		ADD		Y_ADDRESS,LCMTEMP	
+		CALL		#WRITE_INSTRUCTION_CS2
+					
+		MOV.b		WORD_WIDE,r8				
+;	        CLR		r7
+PR_CS2_UP_1	MOV.b		@TABLE+,LCMTEMP	
+ 		CALL		#WRITE_DATA_CS2
+;		INC		r7
+		dec             r8
+		JNZ		PR_CS2_UP_1
+
+		RET
+
+
+;**************************************************************
+; WRITE_INSTRUCTION
+;**************************************************************
+
+WRITE_INSTRUCTION_CS1:	
+                BIC.B		#LCM_EN_BIT_OUT 
+                BIC.B		#D_I_BIT_OUT
+		bis.b		#CS1_BIT_OUT
+		MOV.b		LCMTEMP,&G4OUT
+		BIS.B		#LCM_EN_BIT_OUT 
+                BIC.B		#LCM_EN_BIT_OUT      
+                bic.b		#CS1_BIT_OUT
+		RET
+
+WRITE_INSTRUCTION_CS2:
+                BIC.B		#LCM_EN_BIT_OUT 
+                BIC.B		#D_I_BIT_OUT
+		bis.b		#CS2_BIT_OUT
+		MOV.b		LCMTEMP,&G4OUT
+		BIS.B		#LCM_EN_BIT_OUT
+                BIC.B		#LCM_EN_BIT_OUT
+                bic.b		#CS2_BIT_OUT
+		RET
+			
+  
+;***********************************************************
+; WRITE_DATA
+;***********************************************************
+WRITE_DATA_CS1:
+                 BIC.B		#LCM_EN_BIT_OUT  
+                 BIS.B		#D_I_BIT_OUT
+                 bis.b		#CS1_BIT_OUT			
+                 TST            WORD_BLACK              ;判斷是否要反白? 1=BLACK,0=WHITE   
+		 JEQ            WORD_B_K
+		 INV             LCMTEMP
+WORD_B_K:	
+                 MOV.B          LCMTEMP,&G4OUT 
+		 BIS.B		#LCM_EN_BIT_OUT
+		 BIC.B		#LCM_EN_BIT_OUT
+		 bic.b		#CS1_BIT_OUT
+		 RET
+
+WRITE_DATA_CS2:	
+                 BIC.B		#LCM_EN_BIT_OUT  
+                 BIS.B		#D_I_BIT_OUT
+                 bis.b		#CS2_BIT_OUT
+                 TST               WORD_BLACK
+		 JEQ             WORD_B_K_1
+		 INV             LCMTEMP
+WORD_B_K_1:	
+                 MOV.B           LCMTEMP,&G4OUT
+		 BIS.B		#LCM_EN_BIT_OUT
+		 BIC.B		#LCM_EN_BIT_OUT 
+		 bic.b		#CS2_BIT_OUT
+		 RET
+
+
+;**********************************************************
+;LCM ON
+;**********************************************************
+				
+LCM_ON:
+		MOV.b		#ON,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1
+		CALL		#WRITE_INSTRUCTION_CS2			
+		RET
+;**********************************************************
+;LCM OFF
+;**********************************************************
+
+LCM_OFF:		
+		MOV.b		#OFF,LCMTEMP
+                CALL		#WRITE_INSTRUCTION_CS1
+		CALL		#WRITE_INSTRUCTION_CS2
+		RET
+
+;***************************************************************
+; LCM_INITIAL
+;***************************************************************
+
+LCM_INITIAL:
+                MOV.B		#0,WORD_BLACK	  	        ;設定1代表black	
+        	CALL		#LCM_OFF
+		MOV.b		#STAR_LINE0,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1
+		CALL		#WRITE_INSTRUCTION_CS2
+		MOV.b		#08,r6
+		MOV.b		#PAGE0,r5
+CLS1_LCM:	MOV		R5,LCMTEMP
+		CALL   		#WRITE_INSTRUCTION_CS1
+		CALL   		#WRITE_INSTRUCTION_CS2
+		INC		R5
+		MOV.b		#Y_ADDRESS0,LCMTEMP
+		CALL		#WRITE_INSTRUCTION_CS1
+		CALL		#WRITE_INSTRUCTION_CS2
+		
+		MOV		#064,r4
+CLS2_LCM:	MOV		#00H,LCMTEMP
+		CALL		#WRITE_DATA_CS1
+		CALL		#WRITE_DATA_CS2
+		dec             r4
+                JNZ             CLS2_LCM
+                dec             r6
+                JNZ             CLS1_LCM		
+		CALL		#LCM_ON
+		RET
+		
+;***************************************************************
+; LCM PAGE0 PAGE1 64 CS1 反黑
+;***************************************************************	
+;LCM_BLACK_CS1
+	          ;MOV.B		#1,WORD_BLACK	  	        ;設定1代表black	
+		
+		  ;MOV.b		#02,r6
+		  ;MOV.b		#PAGE0,r5
+;LCM_BLACK_CS1_1 	MOV		R5,LCMTEMP
+		  ;CALL   		#WRITE_INSTRUCTION_CS1
+		  ;INC		R5
+		  ;MOV.b		#Y_ADDRESS0,LCMTEMP
+		  ;CALL		#WRITE_INSTRUCTION_CS1
+		
+		 ; MOV		#064,r4
+;LCM_BLACK_CS1_2   MOV		#00H,LCMTEMP
+		  ;CALL		#WRITE_DATA_CS1
+		
+		  ;dec             r4
+                  ;JNZ            LCM_BLACK_CS1_2
+                  ;dec             r6
+                  ;JNZ           LCM_BLACK_CS1_1	
+		
+		  ;RET	
+		
+;***************************************************************
+; LCM PAGE0 PAGE1 64 CS2 反黑
+;***************************************************************	
+;LCM_BLACK_CS2
+	          ;MOV.B		#1,WORD_BLACK	  	        ;設定1代表black	
+		
+		  ;MOV.b		#02,r6
+		  ;MOV.b		#PAGE0,r5
+;LCM_BLACK_CS2_1 	MOV		R5,LCMTEMP
+		  ;CALL   		#WRITE_INSTRUCTION_CS2
+		  ;INC		R5
+		  ;MOV.b		#Y_ADDRESS0,LCMTEMP
+		  ;CALL		#WRITE_INSTRUCTION_CS2
+		
+		  ;MOV		#064,r4
+;LCM_BLACK_CS2_2   MOV		#00H,LCMTEMP
+		  ;CALL		#WRITE_DATA_CS2
+		
+		  ;dec             r4
+                  ;JNZ            LCM_BLACK_CS2_2
+                  ;dec             r6
+                  ;JNZ           LCM_BLACK_CS2_1	
+		
+		  ;RET
+;***************************************************************	

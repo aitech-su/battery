@@ -1,0 +1,50 @@
+;**************************************************
+; 電瓶測試 開始
+;*****************************************************
+battery
+            call     #LCM_INITIAL
+
+            mov.b     #1,PATTERN
+            mov.b     #1,ITEM
+            mov.b       #00,KEY_VAL
+            mov.b     #01,KEY_VAL1
+            mov.b     #0,print_good_bad                 ;1:良好 2:不顯示 3:更換
+            mov.b     #0,print_charge_cellbad           ;1:需充電 2:充電重測 3:cell bad
+            
+batt_loop1
+            call      #DISPLAY1
+            bis.b     #0f0h,&G1IE          ;致能p1.7~p1.4 中斷
+            cmp.b     #ESC,KEY_VAL
+            jeq       SELECT_BATT_GENERATOR_rep1           
+            
+            call     #detect_connect
+            call     #detect_connect_engine
+          
+
+            cmp.b     #ENTER,KEY_VAL
+            jne       batt_loop1
+            
+            mov       #KEYTABLE,R4
+            mov.b     KEY_VAL1,R5
+            dec       R5
+            rla       R5
+            rla       R5
+            add       R5,R4          
+            br        R4
+
+KEYTABLE
+           mov      #CCA,pc  
+           mov      #EN,pc
+           mov      #DIN,pc
+           mov      #IEC,pc
+           mov      #JIS1,pc
+           mov      #JIS3,pc
+
+;***********************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;***********************************       
+SELECT_BATT_GENERATOR_rep1
+
+          mov       #SELECT_BATT_GENERATOR,pc
+              
+        

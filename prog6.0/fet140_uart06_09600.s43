@@ -1,0 +1,575 @@
+;******************************************************************************
+;   MSP-FET430P140 Demo - USART0, Ultra-Low Pwr UART 9600 String, 32kHz ACLK
+;
+;   Description: This program demonstrates a full-duplex 9600-baud UART using
+;   USART0 and a 32kHz crystal.  The program will wait in LPM3, and will
+;   respond to a received 'u' character using 8N1 protocol. The response will
+;   be the string 'Hello World'.
+;   ACLK = LFXT1 = UCLK0, MCLK = SMCLK = default DCO ~ 800KHz
+;   Baud rate divider with 32768hz XTAL @9600 = 32768Hz/9600 = 3.41 (0003h 4Ah )
+;   //* An external watch crystal is required on XIN XOUT for ACLK *//	
+;
+;                MSP430F149
+;             -----------------
+;         /|\|              XIN|-
+;          | |                 | 32kHz
+;          --|RST          XOUT|-
+;            |                 |
+;            |             P3.4|----------->
+;            |                 | 9600 - 8N1
+;            |             P3.5|<-----------
+;
+;   CPU registers used
+;#define     POINTER R4
+;
+;LF          EQU     0ah                     ; ASCII Line Feed
+;CR          EQU     0dh                     ; ASCII Carriage Return
+;
+;   M. Buccini
+;   Texas Instruments Inc.
+;   Feb 2005
+;   Built with IAR Embedded Workbench Version: 3.21A
+;******************************************************************************
+;#include  <msp430x14x.h>
+
+SetupP3     bis.b   #030h,&P3SEL            ; P3.4,5 = USART0 TXD/RXD
+SetupUART0  bis.b   #UTXE0+URXE0,&ME1       ; Enable USART0 TXD/RXD
+            bis.b   #CHAR,&UCTL0            ; 8-bit characters
+            mov.b   #SSEL0,&UTCTL0          ;mov.b #SSEL0+SSEL1,&UTCTL0  UCLK = SMCLK ;mov.b #SSEL0,&UTCTL0  UCLK = ACLK
+            mov.b   #03h,&UBR00            ;730k/9600=76.041   04ch ; 32k/9600 - 3.41  03h
+            mov.b   #000h,&UBR10            ;
+            mov.b   #04ah,&UMCTL0           ;Modulation  00h          ;Modulation  04ah
+            bic.b   #SWRST,&UCTL0           ; **Initialize USART state machine**
+           ; bis.b   #URXIE0+UTXIE0,&IE1     ; Enable USART0 RX/TX interrupt
+           ; bic.b   #UTXIFG0,&IFG1          ; Clear inital flag on POR
+              ;eint                                 ;
+            ret
+
+;*********************************************************************
+;print 舱
+;********************************************************************
+print_word_table
+
+TX1        bit.b   #UTXIFG0,&IFG1          ; USART0 TX buffer ready?
+            jz      TX1
+            mov.b   @POINTER+,&TXBUF0
+            dec     OFFSET
+            jnz     print_word_table
+            ret
+;*********************************************************************
+;print 盽计
+;********************************************************************
+print_constant
+
+TX2        bit.b   #UTXIFG0,&IFG1          ; USART0 TX buffer ready?
+            jz      TX2
+            mov.b   POINTER,&TXBUF0
+
+            ret
+
+
+;*********************************************************************
+;print 璸衡计 bcd4,bcd3,dot y? n? ,bcd2,bcd1
+;********************************************************************
+print_number_0_9
+          call      #BIN2BCD4
+          MOV	    R13,BCD_LSB
+          CALL      #BCD_SWPB
+
+          cmp.b		#0,bcd4
+	  JEQ           print_num_1
+
+          mov.b         bcd4,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+          jmp         print_num_2
+print_num_1
+          cmp.b		#0,bcd3
+          JEQ           print_num_3
+
+print_num_2
+          mov.b         bcd3,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+print_num_3
+            cmp.b       #00,dot_1
+            jeq         dot_not
+            mov.b      #1,OFFSET
+               mov        #String_DOT,POINTER
+               call       #print_word_table
+               jmp        print_num_5
+
+dot_not
+          cmp.b		#0,bcd4
+	  JNE           print_num_5                   
+          cmp.b		#0,bcd3
+	  JEQ           print_num_4
+          jmp         print_num_5
+
+print_num_4
+          cmp.b		#0,bcd2
+	  JEQ           print_num_6
+print_num_5
+          mov.b         bcd2,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+print_num_6
+           mov.b         bcd1,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+            ret
+
+;*********************************************************************
+;print CCA OR EN OR DIN OR IEC KEY_val
+;********************************************************************
+print_cca_en_din_iec_key_val
+
+               mov.b       #00,dot_1
+               CMP.B      #2,PATTERN
+               JNE        print_en_key_val
+               MOV       CCA_KEY_VAL,R12
+               JMP        print_cca_en_din_iec_key_val_end
+
+print_en_key_val
+               CMP.B      #3,PATTERN
+               JNE        print_din_key_val
+               mov        EN_KEY_VAL,R12
+               JMP        print_cca_en_din_iec_key_val_end
+
+print_din_key_val
+               CMP.B      #4,PATTERN
+               JNE        print_iec_key_val
+               mov        DIN_KEY_VAL,R12
+               JMP        print_cca_en_din_iec_key_val_end
+
+print_iec_key_val
+               CMP.B      #5,PATTERN
+               JNE        print_cca_en_din_iec_key_val_not
+               mov        IEC_KEY_VAL,R12
+
+print_cca_en_din_iec_key_val_end
+                call        #print_number_0_9
+
+print_cca_en_din_iec_key_val_not
+               ret
+;*********************************************************************
+;print CCA OR EN OR DIN OR IEC val
+;********************************************************************
+print_cca_en_din_iec_val
+
+               mov.b       #00,dot_1
+               CMP.B      #2,PATTERN
+               JNE        print_en_val
+               MOV       CCA_VAL,R12
+               JMP        print_cca_en_din_iec_val_end
+
+print_en_val
+               CMP.B      #3,PATTERN
+               JNE        print_din_val
+               mov        EN_VAL,R12
+               JMP        print_cca_en_din_iec_val_end
+
+print_din_val
+               CMP.B      #4,PATTERN
+               JNE        print_iec_val
+               mov        DIN_VAL,R12
+               JMP        print_cca_en_din_iec_val_end
+
+print_iec_val
+               CMP.B      #5,PATTERN
+               JNE        print_unkno_val
+               mov        IEC_VAL,R12
+               JMP        print_cca_en_din_iec_val_end
+
+print_unkno_val
+               CMP.B      #7,PATTERN
+               JNE        print_cca_en_din_iec_val_not
+               mov        CCA_VAL,R12
+
+print_cca_en_din_iec_val_end
+                call        #print_number_0_9
+
+print_cca_en_din_iec_val_not
+               ret
+
+;*********************************************************************
+;print CCA OR EN OR DIN OR IEC UNIT
+;********************************************************************
+print_cca_en_din_iec_unit
+
+               mov.b      #4,OFFSET
+
+               CMP.B      #2,PATTERN
+               JNE        print_en_unit
+               mov        #String_CCA,POINTER
+               JMP        print_cca_en_din_iec_unit_end
+
+print_en_unit
+               CMP.B      #3,PATTERN
+               JNE        print_din_unit
+               mov        #String_EN,POINTER
+               JMP        print_cca_en_din_iec_unit_end
+
+print_din_unit
+               CMP.B      #4,PATTERN
+               JNE        print_iec_unit
+               mov        #String_DIN,POINTER
+               JMP        print_cca_en_din_iec_unit_end
+
+print_iec_unit
+               CMP.B      #5,PATTERN
+               JNE        print_unkno_unit
+               mov        #String_IEC,POINTER
+               JMP        print_cca_en_din_iec_unit_end
+
+print_unkno_unit
+               CMP.B      #7,PATTERN
+               JNE        print_cca_en_din_iec_unit_not
+               mov        #String_CCA,POINTER
+
+print_cca_en_din_iec_unit_end
+               call       #print_word_table
+print_cca_en_din_iec_unit_not
+               ret
+
+;*********************************************************************
+;print 3.3 m  bcd8,bcd7,bcd6,bcd5,bcd4,bcd3,bcd2,bcd1
+;********************************************************************
+print_res
+               MOV	  RES_VAL_M_BCD,BCD_MID
+               MOV	  RES_VAL_L_BCD,BCD_LSB
+               CALL      #BCD_SWPB
+
+          ;mov.b         bcd8,OFFSET
+          ;mov.b         String_0(OFFSET),POINTER
+          ;call       #print_constant
+
+          ; mov.b         bcd7,OFFSET
+          ;mov.b         String_0(OFFSET),POINTER
+          ;call       #print_constant
+
+          ;mov.b         bcd6,OFFSET
+          ;mov.b         String_0(OFFSET),POINTER
+          ;call       #print_constant
+
+          cmp.b		#0,bcd5
+	  JEQ           print_MR_1
+
+           mov.b         bcd5,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+          jmp         print_MR_2
+
+print_MR_1
+          cmp.b		#0,bcd4
+	  JEQ           print_MR_3
+print_MR_2
+          mov.b         bcd4,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+print_MR_3
+
+           mov.b         bcd3,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+            mov.b      #1,OFFSET
+               mov        #String_DOT,POINTER
+               call       #print_word_table
+
+          mov.b         bcd2,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+           mov.b         bcd1,OFFSET
+          mov.b         String_0(OFFSET),POINTER
+          call       #print_constant
+
+                  mov.b       #4,OFFSET
+                  mov         #String_M,POINTER
+                  call       #print_word_table
+
+            ret
+;*******************************************************************
+;print_good_bad ;1:▆ 2:ぃ陪ボ 3:传 いゅ
+;*******************************************************************
+print_good_bad_t
+                  CMP.B       #1,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_t_bad
+                  mov.b       #4,OFFSET
+                  mov         #String_GOOD_T,POINTER
+                  JMP         print_good_bad_t_end
+print_good_bad_t_bad
+                  CMP.B       #3,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_t_not
+                  mov.b      #4,OFFSET
+                  mov         #String_BAD_T,POINTER
+
+print_good_bad_t_end
+                  call       #print_word_table
+print_good_bad_t_not
+               ret
+               
+;*******************************************************************
+;print_good_bad ;1:▆ 2:ぃ陪ボ 3:传 らゅ
+;*******************************************************************
+print_good_bad_J
+                  CMP.B       #1,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_J_bad
+                  mov.b       #8,OFFSET
+                  mov         #String_GOOD_J,POINTER
+                  JMP         print_good_bad_J_end
+print_good_bad_J_bad
+                  CMP.B       #3,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_J_not
+                  mov.b      #4,OFFSET
+                  mov         #String_BAD_J,POINTER
+
+print_good_bad_J_end
+                  call       #print_word_table
+print_good_bad_J_not
+               ret 
+               
+;*******************************************************************
+;print_good_bad ;1:▆ 2:ぃ陪ボ 3:传 らゅ
+;*******************************************************************
+print_good_bad_K
+                  CMP.B       #1,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_K_bad
+                  mov.b       #4,OFFSET
+                  mov         #String_GOOD_K,POINTER
+                  JMP         print_good_bad_K_end
+print_good_bad_K_bad
+                  CMP.B       #3,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_K_not
+                  mov.b      #4,OFFSET
+                  mov         #String_BAD_K,POINTER
+
+print_good_bad_K_end
+                  call       #print_word_table
+print_good_bad_K_not
+               ret               
+
+;*******************************************************************
+;print_good_bad ;1:▆ 2:ぃ陪ボ 3:传 english
+;*******************************************************************
+print_good_bad_e
+                  CMP.B       #1,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_e_bad
+                  mov.b      #4,OFFSET
+                  mov         #String_GOOD_E,POINTER
+                  JMP         print_good_bad_e_end
+print_good_bad_e_bad
+                  CMP.B       #3,print_good_bad                ;1:▆ 2:ぃ陪ボ 3:传
+                  JNE         print_good_bad_e_not
+                  mov.b      #7,OFFSET
+                  mov         #String_BAD_E,POINTER
+
+print_good_bad_e_end
+                  call       #print_word_table
+print_good_bad_e_not
+               ret
+
+
+;*********************************************************************************************
+;print_charge_cellbad 1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx% いゅ
+;*********************************************************************************************
+print_charge_cellbad_t
+                  CMP.B       #1,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_t_restest
+                  mov.b      #6,OFFSET
+                  mov         #String_RECHARGE_T,POINTER
+                  JMP         print_charge_cellbad_t_end
+
+print_charge_cellbad_t_restest
+                  CMP.B       #2,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_t_cellbad
+                  mov.b      #8,OFFSET
+                  mov         #String_CHARGRETEST_T,POINTER
+                  JMP         print_charge_cellbad_t_end
+
+print_charge_cellbad_t_cellbad
+                  CMP.B       #3,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_t_not
+                  mov.b      #8,OFFSET
+                  mov         #String_CELLBAD_T,POINTER
+
+print_charge_cellbad_t_end
+                  call       #print_word_table
+                  ret
+
+print_charge_cellbad_t_not
+                  MOV       PERCEN_VAL,R12
+                  call        #print_number_0_9
+                  mov.b      #2,OFFSET
+                  mov         #String_p,POINTER
+                  call       #print_word_table
+               ret
+
+;*********************************************************************************************
+;print_charge_cellbad 1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx% らゅ
+;*********************************************************************************************
+print_charge_cellbad_J
+                  CMP.B       #1,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_J_restest
+                  mov.b      #6,OFFSET
+                  mov         #String_RECHARGE_J,POINTER
+                  JMP         print_charge_cellbad_J_end
+
+print_charge_cellbad_J_restest
+                  CMP.B       #2,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_J_cellbad
+                  mov.b      #14,OFFSET
+                  mov         #String_CHARGRETEST_J,POINTER
+                  JMP         print_charge_cellbad_J_end
+
+print_charge_cellbad_J_cellbad
+                  CMP.B       #3,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_J_not
+                  mov.b      #8,OFFSET
+                  mov         #String_CELLBAD_J,POINTER
+
+print_charge_cellbad_J_end
+                  call       #print_word_table
+                  ret
+
+print_charge_cellbad_J_not
+                  MOV       PERCEN_VAL,R12
+                  call        #print_number_0_9
+                  mov.b      #2,OFFSET
+                  mov         #String_p,POINTER
+                  call       #print_word_table
+               ret
+               
+;*********************************************************************************************
+;print_charge_cellbad 1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx% いゅ
+;*********************************************************************************************
+print_charge_cellbad_K
+                  CMP.B       #1,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_K_restest
+                  mov.b      #8,OFFSET
+                  mov         #String_RECHARGE_K,POINTER
+                  JMP         print_charge_cellbad_K_end
+
+print_charge_cellbad_K_restest
+                  CMP.B       #2,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_K_cellbad
+                  mov.b      #10,OFFSET
+                  mov         #String_CHARGRETEST_K,POINTER
+                  JMP         print_charge_cellbad_K_end
+
+print_charge_cellbad_K_cellbad
+                  CMP.B       #3,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_K_not
+                  mov.b      #8,OFFSET
+                  mov         #String_CELLBAD_K,POINTER
+
+print_charge_cellbad_K_end
+                  call       #print_word_table
+                  ret
+
+print_charge_cellbad_K_not
+                  MOV       PERCEN_VAL,R12
+                  call        #print_number_0_9
+                  mov.b      #2,OFFSET
+                  mov         #String_p,POINTER
+                  call       #print_word_table
+               ret               
+               
+;*********************************************************************************************
+;print_charge_cellbad 1:惠筿 2:筿代 3:cell bad english
+;*********************************************************************************************
+print_charge_cellbad_e
+                  CMP.B       #1,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_e_restest
+                  mov.b      #8,OFFSET
+                  mov         #String_RECHARGE_E,POINTER
+                  JMP         print_charge_cellbad_e_end
+
+print_charge_cellbad_e_restest
+                  CMP.B       #2,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_e_cellbad
+                  mov.b      #13,OFFSET
+                  mov         #String_CHARGRETEST_E,POINTER
+                  JMP         print_charge_cellbad_e_end
+
+print_charge_cellbad_e_cellbad
+                  CMP.B       #3,print_charge_cellbad           ;1:惠筿 2:筿代 3:cell bad ㄤ计陪ボ xxx%
+                  JNE         print_charge_cellbad_e_not
+                  mov.b      #8,OFFSET
+                  mov         #String_CELLBAD_E,POINTER
+
+print_charge_cellbad_e_end
+                  call       #print_word_table
+                  ret
+
+print_charge_cellbad_e_not
+                  MOV       PERCEN_VAL,R12
+                  call        #print_number_0_9
+                  mov.b      #2,OFFSET
+                  mov         #String_p,POINTER
+                  call       #print_word_table
+               ret
+
+
+
+;*********************************************************************
+;print 铬 1 ︽
+;********************************************************************
+print_sp_1_line
+               mov.b     #LF,POINTER
+               call      #print_constant
+               ;mov.b     #LF,POINTER
+               ;call      #print_constant
+               ret
+               
+;*********************************************************************
+;print 铬 2 ︽
+;********************************************************************
+print_sp_2_line
+               mov.b     #LF,POINTER
+               call      #print_constant
+               mov.b     #LF,POINTER
+               call      #print_constant
+               ret               
+
+;*********************************************************************
+;print 挡铬 3 ︽
+;********************************************************************
+print_over_3_line
+               mov.b     #LF,POINTER
+               call      #print_constant
+               mov.b     #LF,POINTER
+               call      #print_constant
+               mov.b     #LF,POINTER
+               call      #print_constant
+               ;mov.b     #LF,POINTER
+               ;call      #print_constant
+               ;mov.b     #LF,POINTER
+               ;call      #print_constant
+               ret
+
+
+;------------------------------------------------------------------------------
+USART0TX_ISR;
+;------------------------------------------------------------------------------
+           ;cmp.w   #String1+13,POINTER     ;
+            ;jeq     Done                    ;
+            ;mov.b   @POINTER+,&TXBUF0       ;
+Done        reti                            ;
+                                            ;
+;-----------------------------------------------------------------------------
+USART0RX_ISR;
+;-----------------------------------------------------------------------------
+           ; cmp.b   #'u',&RXBUF0            ;
+            ;jne     USART_Done              ;
+           ; mov.w   #String1,POINTER        ;
+            ;mov.b   @POINTER+,&TXBUF0       ;
+USART_Done  reti                            ;		
+
+;*******************************************************************************
+

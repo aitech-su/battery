@@ -1,0 +1,173 @@
+;****************************************
+;   ADC  
+;****************************************
+adc_0_nor 
+
+SetupADC12
+            call      #adc_common
+            mov.b   #INCH_0+SREF_2,&ADC12MCTL0      ; A0 goes to MEM0
+
+            call      #adc_common1
+            ret
+                                            ;
+;*******************************************************
+adc_1_nor
+            call      #adc_common
+            mov.b   #INCH_1+SREF_2,&ADC12MCTL0      ; A1 goes to MEM0
+                                            ;
+            call      #adc_common1
+            ret
+                                            ;
+;*******************************************************
+adc_2_nor
+            call      #adc_common
+            mov.b   #INCH_2+SREF_2,&ADC12MCTL0      ; A1 goes to MEM0
+                                            ;
+            call      #adc_common1
+            ret
+;*******************************************************
+adc_3_nor
+            call      #adc_common
+            mov.b   #INCH_3+SREF_2,&ADC12MCTL0      ; A1 goes to MEM0  
+            call #delay_3ms                         ;改善有些cpu不穩加 delay 
+
+            call      #adc_common1
+            ret
+;*******************************************************
+adc_5_nor
+            call      #adc_common
+            mov.b   #INCH_5+SREF_2,&ADC12MCTL0      ; A1 goes to MEM0
+                                            ;
+            call      #adc_common1
+            ret
+            
+;*******************************************************
+adc_10_nor
+            call      #adc_common
+            mov.b   #INCH_10+SREF_2,&ADC12MCTL0      ; A1 goes to MEM0
+                                            ;
+            call      #adc_common1
+            ret            
+            
+
+;*******************************************************
+;adc_5_nor
+              ;mov.w     #REFON+REF2_5V+ADC12ON+SHT0_2,&ADC12CTL0   ; Sampling time, ADC12 on+REF2_5V
+
+;                    mov     #03600h,R15             ; Delay for needed ref start-up.
+;L$111         dec     R15                     ; See datasheet for details.
+;            jnz     L$111
+
+            ;mov.w   #SHP,&ADC12CTL1         ; Use sampling timer
+            ;mov.b   #INCH_5+SREF_2,&ADC12MCTL0      ; A0 goes to MEM0
+            ;mov.w   #01h,&ADC12IE           ; Enable interrupt
+            ;bis.w   #ENC,&ADC12CTL0         ;
+            ;bis.b   #BIT5,&P6SEL             ; P6.0 ADC option select
+                                            ;
+            ;bis.w   #ADC12SC,&ADC12CTL0     ; Start sampling/conversion
+            ;bis.w   #CPUOFF+GIE,SR          ; LPM0, ADC12_ISR will force exit  
+            ;ret
+
+;*******************************************************            
+adc_common 
+            mov.w   #REFON+REF2_5V+ADC12ON+SHT0_2,&ADC12CTL0   ; Sampling time, ADC12 on+REF2_5V 
+            mov.w   #SHP,&ADC12CTL1         ; Use sampling timer
+            ret 
+;*******************************************************            
+adc_common1
+ 
+            mov.w   #01h,&ADC12IE           ; Enable interrupt
+            bis.w   #ENC,&ADC12CTL0         ;          
+            bis.w   #ADC12SC,&ADC12CTL0     ; Start sampling/conversion
+testIFG_1_testmode      bit       #BIT0,&ADC12IFG         ; Conversion done?
+                        jnz       testIFG_1_testmode               ; No, test again
+            ;bis.w   #CPUOFF+GIE,SR          ; LPM0, ADC12_ISR will force exit  
+            ret  
+ 
+;*******************************************************            
+adc_0_avg 
+             call       #adc_avg_common                   
+adc_avg_0_loop1  
+                        call      #adc_0_nor 
+                        add       adc_,r6
+                        dec       adc_avg_conter
+                        jnz       adc_avg_0_loop1
+                        call       #adc_avg_common1                         
+            ret  
+               
+;*******************************************************            
+adc_1_avg 
+             call       #adc_avg_common                  
+adc_avg_1_loop1  
+                        call      #adc_1_nor  
+                        add       adc_,r6
+                        dec       adc_avg_conter
+                        jnz       adc_avg_1_loop1
+                        call       #adc_avg_common1                                          
+            ret  
+;*******************************************************            
+adc_2_avg 
+             call       #adc_avg_common                 
+adc_avg_2_loop1  
+                        call      #adc_2_nor 
+                        add       adc_,r6
+                        dec       adc_avg_conter
+                        jnz       adc_avg_2_loop1
+                        call       #adc_avg_common1                                          
+            ret  
+;*******************************************************            
+adc_3_avg 
+             call       #adc_avg_common                 
+adc_avg_3_loop1  
+                        call      #adc_3_nor  
+                        add       adc_,r6
+                        dec       adc_avg_conter
+                        jnz       adc_avg_3_loop1
+                        call       #adc_avg_common1                                          
+                      ret              
+;*******************************************************            
+adc_5_avg 
+                        call       #adc_avg_common                           
+adc_avg_5_loop1  
+                        call      #adc_5_nor  
+                        add       adc_,r6
+                        dec       adc_avg_conter
+                        jnz       adc_avg_5_loop1
+                        
+                      call       #adc_avg_common1                                                  
+                      ret 
+                      
+;*******************************************************            
+adc_10_avg 
+                        call       #adc_avg_common                           
+adc_avg_10_loop1  
+                        call      #adc_10_nor  
+                        add       adc_,r6
+                        dec       adc_avg_conter
+                        jnz       adc_avg_10_loop1
+                        
+                      call       #adc_avg_common1                                                  
+                      ret                       
+                      
+;*******************************************************            
+adc_avg_common 
+             mov      #16,adc_avg_conter
+             mov      #0,r6 
+             ret
+adc_avg_common1                        
+                        rra       r6 
+                        rra       r6
+                        rra       r6
+                        rra       r6
+                        and       #0fffh,r6                 ;將自己傳給自己 MSB-->MSB RRA 4次覆蓋SET 0
+                        mov       r6,adc_
+                ret
+            
+;*******************************************************
+;------------------------------------------------------------------------------
+ADC12_ISR;  Exit any LPMx on reti
+;------------------------------------------------------------------------------
+            mov     &ADC12MEM0,adc_          ; Move result             
+            ;bic.w   #CPUOFF,0(SP)           ; Exit any LPM0 on reti
+            reti                            ;		
+

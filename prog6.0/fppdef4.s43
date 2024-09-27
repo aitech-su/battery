@@ -1,0 +1,120 @@
+;==============================================================================
+;  MSP430 Floating Point Package   Version 4.0 IAR
+;
+;  Definitions
+;  Texas Instruments Deutschland               IAR Version
+;  Date:    January, 6 1997		       July, 21 2003
+;  Version: 4.07
+;	    4.0  Inclusion of hardware multiplier MACROs
+;	    4.13 Macros MAC and MPY changed to MACF and MPYF
+;==============================================================================
+;  Register Definitions for the Floating Point Subroutines
+;
+;  Do NOT change the register assignment!!!
+;
+          IF DOUBLE=1
+                                ; Argument 1
+ #define     ARG1_MSB R5
+ #define     ARG1_MID R6
+ #define     ARG1_LSB R7
+                                ; Argument 2
+ #define     ARG2_MSB R8
+ #define     ARG2_MID R9
+ #define     ARG2_LSB R10
+                                ; Result
+ #define     RESULT_MSB R11
+ #define     RESULT_MID R12
+ #define     RESULT_LSB R13
+                                ; Help Register and Loop Counter
+ #define     HELP       R14
+ #define     COUNTER    R15
+                                ; Pointer to Argument 1
+ #define     RPARG      R5
+                                ; Pointer to Argument 2
+ #define     RPRES      R11
+ML           EQU      40        ; Length of mantissa 40 bits
+          ELSE
+ #define     ARG1_MSB   R5
+ #define     ARG1_LSB   R6
+ #define     ARG2_MSB   R7
+ #define     ARG2_LSB   R8
+ #define     RESULT_MSB R9
+ #define     RESULT_LSB R10
+ #define     HELP       R11
+ #define     COUNTER    R12
+ #define     RPARG      R5
+ #define     RPRES      R9
+ML           EQU      24        ; Length of mantissa 24 bits
+          ENDIF
+;
+; Definition for the Status Register Bits
+;
+FN           EQU      4                 ; Negative bit N in SR
+FZ           EQU      2                 ; Zero bit Z     in SR
+FC           EQU      1                 ; Carry bit C    in SR
+
+;  Define FPP operations for the Linker
+
+             PUBLIC   FLT_ADD
+             PUBLIC   FLT_SUB
+             PUBLIC   FLT_MUL
+             PUBLIC   FLT_DIV
+             PUBLIC   FLT_CMP
+             PUBLIC   FLT_SAV
+             PUBLIC   FLT_REC
+             PUBLIC   FLT_END
+
+;  Register Definitions for the Conversion Subroutines
+
+          IF DOUBLE=1
+                                 ; BCD-buffer 48 bits MSBs
+ #define     BCD_MSB  R8
+ #define     BCD_MID  R9
+ #define     BCD_LSB  R10
+                                 ; Binary buffer 48 bits MSBs
+ #define     BIN_MSB  R11
+ #define     BIN_MID  R12
+ #define     BIN_LSB  R13
+          ELSE
+                                 ; BCD-buffer 48 bits MSBs
+ #define     BCD_MSB  R5
+ #define     BCD_MID  R6
+ #define     BCD_LSB  R7
+                                 ; Binary buffer 48 bits MSBs
+ #define     BIN_MSB  R9
+ #define     BIN_MID  R10
+ #define     BIN_LSB  R8
+          ENDIF
+
+;  Define Conversion Subroutines for the Linker
+
+          PUBLIC     CNV_BIN40
+          PUBLIC     CNV_BIN32
+          PUBLIC     CNV_BIN32U
+          PUBLIC     CNV_BIN16
+          PUBLIC     CNV_BIN16U
+          PUBLIC     CNV_BIN
+          PUBLIC     CNV_FP_BIN
+          PUBLIC     CNV_BCD_FP
+          PUBLIC     CNV_FP_BCD
+;
+; Macro Definitions for the hardware multiplier
+;
+       IF HW_MPY=1
+ResLo     EQU        013Ah        ; Result Register lower 16 bits
+ResHi     EQU        013Ch        ; Result Register upper 16 bits
+SumExt    EQU        013Eh        ; Result Register carry/extended sign
+;
+MPYF	  MACRO      arg1,arg2	  ; Unsigned MPY 16x16 bits
+          MOV        arg1,&0130h  ; Operand 1 to "Unsigned MPY Register"
+          MOV        arg2,&0138h  ; Operand 2 to "Start MPY Register"
+          ENDM                    ; Result in ResHi|ResLo
+
+MACF	  MACRO      arg1,arg2	  ; MPY and accumulate 16x16 bits (unsigned)
+          MOV        arg1,&0134h  ; Operand 1 to "MPY and Accum. Register"
+          MOV        arg2,&0138h  ; Operand 2 to "Start MPY Register"
+          ENDM                    ; Result in SumExt|ResHi|ResLo
+          ENDIF
+
+;    END OF THE FLOATING POINT PACKAGE DEFINITIONS
+

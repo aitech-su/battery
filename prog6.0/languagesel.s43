@@ -1,0 +1,109 @@
+;****************************************
+;#define     beep_length     0300h;r6           		;儲存 buzzer 次數
+;*******************************************************
+;*****************************************************************************
+;  LANGUAGE_SEL ESC按住後開機  7下 進入選擇，上:英 下:中文 右:日 左:韓文
+;*******************************************************
+LANGUAGE_SEL
+            MOV.B     #8,PATTERN
+            MOV       #00,KEY_VAL
+            MOV       #0ffffh,R5
+            MOV       #00,R4
+
+LAN_1
+            DEC       R5
+            JZ        LAN_2
+
+            CMP.B     #ESC,KEY_VAL
+            JNE       LAN_1
+
+            MOV       #00,KEY_VAL
+            MOV       #0ffffh,R5
+            INC       R4
+            JMP       LAN_1
+
+LAN_2
+            CMP.B     #07,R4
+            JEQ       write_flash
+            
+pp_1          call     #BEEP
+            CALL      #delay_1s
+            JMP       pp_1
+;---------------------------------------------------
+
+write_flash
+            cmp.b     #UP,KEY_VAL
+            JNE       LAN_T
+            mov.b     #01,KEY_VAL1
+            call    #write_flash_LANG_VAL            ; Copy value to segment A        
+LAN_T
+            cmp.b     #DOWN,KEY_VAL
+            JNE       LAN_J
+            mov.b     #02,KEY_VAL1
+            call    #write_flash_LANG_VAL            ; Copy value to segment A 
+            jmp     $
+                                            
+LAN_J
+            cmp.b     #RIGHT,KEY_VAL
+            JNE       LAN_K
+            mov.b     #03,KEY_VAL1
+            call    #write_flash_LANG_VAL            ; Copy value to segment A 
+            jmp     $
+LAN_K
+            cmp.b     #LEFT,KEY_VAL
+            JNE       write_flash
+            mov.b     #04,KEY_VAL1
+            call    #write_flash_LANG_VAL            ; Copy value to segment A   
+            jmp     $   
+
+
+;**************************************************
+;選擇語言  ENGLISH 繁體中文  按ESC鍵選擇語言
+;**************************************************
+LANGUAGE_SEL_ESC
+            MOV       #00,KEY_VAL
+            call     #LCM_INITIAL
+           MOV.B     #01,KEY_VAL1
+            MOV.B     #8,PATTERN
+
+LANGUAGE_SEL_ESC_L1
+
+            call      #dislanguagesel
+            call      #dislanguage
+            CMP.B     #ESC,KEY_VAL
+            JEQ       SELECT_BATT_GENERATOR_rep3
+            CMP.B     #ENTER,KEY_VAL
+            JNE       LANGUAGE_SEL_ESC_L1
+            CALL      #write_flash_LANG_VAL
+            JMP       SELECT_BATT_GENERATOR_rep3
+
+
+;*******************************************
+;寫語言直至 FLASH
+;**************************************
+write_flash_LANG_VAL
+           call      #CopyA2B                     ;Copy Seg A to Seg B, R5 used as working reg.
+           call      #Write_SegA                  ;&01080h 假erase 啟動段A,假erase &01000h 啟動段B殺 ,  殺先殺才能寫
+
+          ;mov.w     #FWKEY+WRT,&FCTL1            ;Write bit = 1 開始寫, 放在 call  #Write_SegA 之後省空間,共用
+           mov.b     KEY_VAL1,&LANGUAGE_SEL_INFO          ; to 01080h 
+           mov       &VOLTAGE_RATE_LSB_back,&VOLTAGE_RATE_LSB   ;電壓修正率浮點數據從段B(01000H)寫回段A(01080H)        
+           mov       &VOLTAGE_RATE_MID_back,&VOLTAGE_RATE_MID 
+           mov       &VOLTAGE_RATE_MSB_back,&VOLTAGE_RATE_MSB
+
+           mov       &MR_RATE_LSB_back,&MR_RATE_LSB             ;電阻MR修正率浮點數據從段B(01000H)寫回段A(01080H)        
+           mov       &MR_RATE_MID_back,&MR_RATE_MID 
+           mov       &MR_RATE_MSB_back,&MR_RATE_MSB
+           mov.w     #FWKEY+LOCK,&FCTL3                     ;Lock = 1, 結束寫
+           MOV.B     &LANGUAGE_SEL_INFO,ENGLISH_TAIWAN    ;寫到RAM 才可馬上生效
+           EINT                                           ;call  #CopyA2B 有 DINT      
+           RET
+            
+;***********************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;***********************************       
+SELECT_BATT_GENERATOR_rep3
+
+          mov       #SELECT_12V_24V,pc
+                          
+

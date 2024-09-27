@@ -1,0 +1,153 @@
+################################################################################
+#                                                                              #
+#      IAR Universal Linker V6.5.1.95                                          #
+#                                                                              #
+#           Link time     =  04/Oct/2018  09:49:34                             #
+#           Target CPU    =  MSP430                                            #
+#           List file     =  "C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbp #
+#                            prog\Release\List\battprint24.map"                #
+#           Output file 1 =  "C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbp #
+#                            prog\Release\Exe\battprint24.txt"                 #
+#                            Format: msp430_txt                                #
+#           Command line  =  -f C:\Users\james\AppData\Local\Temp\EW152B.tmp   #
+#                            ("C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bb #
+#                            pprog\Release\Obj\battprint.r43"                  #
+#                            -o                                                #
+#                            "C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbp #
+#                            prog\Release\Exe\battprint24.txt"                 #
+#                            -Fmsp430_txt -l                                   #
+#                            "C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbp #
+#                            prog\Release\List\battprint24.map"                #
+#                            -xms                                              #
+#                            "-IC:\Program Files (x86)\IAR Systems\Embedded Wo #
+#                            rkbench 8.0\430\LIB\"                             #
+#                            -f                                                #
+#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
+#                            bench 8.0\430\config\linker\lnk430f149.xcl"       #
+#                            (-cmsp430 -QCODE_I=CODE_ID -QTLS16_I=TLS16_ID     #
+#                            -D__iar_HWMUL=130 -Z(CONST)INFO=1000-10FF         #
+#                            -Z(CONST)INFOA=1080-10FF                          #
+#                            -Z(CONST)INFOB=1000-107F                          #
+#                            -Z(DATA)DATA16_I,DATA16_Z,DATA16_N,TLS16_I=0200-0 #
+#                            9FF                                               #
+#                            -Z(DATA)DATA16_HEAP+_DATA16_HEAP_SIZE             #
+#                            -Z(DATA)CODE_I -Z(DATA)CSTACK+_STACK_SIZE#        #
+#                            -Z(CONST)DATA16_C,DATA16_ID,TLS16_ID,DIFUNCT,CHEC #
+#                            KSUM=1100-FFDF                                    #
+#                            -Z(CODE)CSTART,ISR_CODE,CODE_ID=1100-FFDF         #
+#                            -P(CODE)CODE=1100-FFDF -Z(CODE)INTVEC=FFE0-FFFF   #
+#                            -Z(CODE)RESET=FFFE-FFFF) -f                       #
+#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
+#                            bench 8.0\430\config\linker\multiplier.xcl"       #
+#                            (-e?Mul8Hw=?Mul8 -e?Mul16Hw=?Mul16                #
+#                            -e?Mul16to32uHw=?Mul16to32u                       #
+#                            -e?Mul16to32sHw=?Mul16to32s -e?Mul32Hw=?Mul32     #
+#                            -e_Mul64iHw=_Mul64i                               #
+#                            -e_Mul32u32uto64iHw=_Mul32u32uto64i               #
+#                            -e?Mul32fHw=_Mul32f -e_Mul64fHwPtr=_Mul64fPtr)    #
+#                            -D_STACK_SIZE=50 -D_DATA16_HEAP_SIZE=50           #
+#                            -D_DATA20_HEAP_SIZE=50)                           #
+#                                                                              #
+#                           Copyright (C) 1987-2016 IAR Systems AB.            #
+################################################################################
+
+
+
+
+
+                ****************************************
+                *                                      *
+                *           CROSS REFERENCE            *
+                *                                      *
+                ****************************************
+
+                  There are no program entries.
+
+
+                ****************************************
+                *                                      *
+                *    AUTOMATIC SYMBOL REDIRECTIONS     *
+                *                                      *
+                ****************************************
+
+                  There are no automatic symbol redirections.
+
+
+
+                ****************************************
+                *                                      *
+                *              MODULE MAP              *
+                *                                      *
+                ****************************************
+
+
+  DEFINED ABSOLUTE ENTRIES
+    *************************************************************************
+
+  DEFINED ABSOLUTE ENTRIES
+  PROGRAM MODULE, NAME : ?ABS_ENTRY_MOD
+
+Absolute parts
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           _DATA20_HEAP_SIZE       0050 
+           _DATA16_HEAP_SIZE       0050 
+           _STACK_SIZE             0050 
+           __iar_HWMUL             0130 
+    *************************************************************************
+
+  FILE NAME : C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\Release\Obj\battprint.r43
+  PROGRAM MODULE, NAME : battprint
+
+Absolute parts
+     1100 - FAE3
+     FFE8 - FFE9
+     FFEC - FFF3
+     FFFE - FFFF
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           FLT_ADD                 1154 
+           FLT_SUB                 1158 
+           FLT_MUL                 1224 
+           FLT_DIV                 12E6 
+           FLT_CMP                 13AA 
+           FLT_SAV                 1118 
+           FLT_REC                 1136 
+           FLT_END                 1372 
+           CNV_BIN40               142A 
+           CNV_BIN32               142E 
+           CNV_BIN32U              1438 
+           CNV_BIN16               1440 
+           CNV_BIN16U              144C 
+           CNV_BIN                 1452 
+           CNV_FP_BIN              14E0 
+           CNV_BCD_FP              1468 
+           CNV_FP_BCD              14E4 
+
+
+
+                ****************************************
+                *                                      *
+                *      SEGMENTS IN ADDRESS ORDER       *
+                *                                      *
+                ****************************************
+
+
+SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
+=======              =====    =============   ===========     ====  ====  =====
+                                       1100 - FAE3            E9E4  aseg  
+                                       FFE8 - FFE9               2  aseg  
+                                       FFEC - FFF3               8  aseg  
+                                       FFFE - FFFF               2  aseg  
+
+                ****************************************
+                *                                      *
+                *        END OF CROSS REFERENCE        *
+                *                                      *
+                ****************************************
+
+ 0 bytes of CODE memory (+ 59 888 absolute )
+
+Errors: none
+Warnings: none
+

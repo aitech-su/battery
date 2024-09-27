@@ -1,0 +1,431 @@
+;==============================================================================
+;  MSP430 Floating Point Package   Version 4.0 IAR
+;
+;  Conversion Subroutines
+;  Texas Instruments Deutschland                IAR Version
+;  Date:    January, 6 1997                     March, 14 2000
+;  Author:  Lutz Bierl TID 4711
+;  Version: 4.02                                4.03
+;	    3.0   First version
+;	    4.0   Comment enhancements and corrections
+;
+;============================================================================
+;
+;  This Conversion Package supports the following Integer Conversions:
+;
+;  CNV_BIN40   40 Bit binary to floating point		(24/40 mantissa)
+;  CNV_BIN32U  32 Bit unsigned binary to floating point (24/40 mantissa)
+;  CNV_BIN32   32 Bit signed binary to floating point	(24/40 mantissa)
+;  CNV_BIN16U  16 Bit unsigned binary to floating point (24/40 mantissa)
+;  CNV_BIN16   16 Bit signed binary to floating point	(24/40 mantissa)
+;  CNV_BIN     40 Bit binary buffer to floating point	(24/40 mantissa)
+;  CNV_FP_BIN  Floating point to binary 40 bits 	(24/40 mantissa)
+;  CNV_BCD_FP  12 digit signed BCD  to floating point	(24/40 mantissa)
+;  CNV_FP_BCD  FP number to signed 12 digit BCD number	(24/40 mantissa)
+;
+;  Errors are written to the Status Register SR: N = 0: no error
+;						 N = 1: error occured
+;
+;  The conversion subroutines may be used for mantissas with 24 bits and
+;  with 40 bits: the value of DOUBLE decides which length is used:
+;  DOUBLE = 0:	24 bit mantissa (4 bytes per floating point number)
+;  DOUBLE = 1:	40 bit mantissa (6 bytes per floating point number)
+;
+;  MSB=.31	   .23			  LSB=.0	   .FLOAT format
+;  +-------------------------------------------+
+;  | e.7 ... e.0 | sign | m.22 ........... m.0 |	   DOUBLE = 0
+;  +--------------------.----------------------+
+;   Exponent E	       DP     Mantissa M
+;
+;  MSB=.47	   .39				    LSB=.0 .DOUBLE format
+;  +-----------------------------------------------------+
+;  | e.7 ... e.0 | sign | m.38 ..................... m.0 | DOUBLE = 1
+;  +--------------------.--------------------------------+
+;   Exponent E	       DP     Mantissa M
+;
+;  Explanation of the FPP: see Metering Application Report
+;============================================================================
+;
+;  For all Conversion Subroutines:
+;
+;  - Two (three) free words have to be allocated on the stack
+;  - Arguments are not changed (except if on TOS)
+;  - All pointers point to the MSB part of the numbers
+;  - After the completion both pointers (and the SP) point to the result
+;    on top of the stack (TOS)
+;
+;  Call Example (written for both formats):
+;
+;	CALL	  #FLT_SAV     ; Save registers
+;	SUB	  #(ML/8)+1,SP ; Allocate stack for result
+;	MOV	  #bcdb,RPARG  ; Load address of BCD-buffer to RPARG
+;	CALL	  #CNV_BCD_FP  ; Convert BCD (or binary) number to FP
+;	MOV	  #val3,RPARG  ; Load address of FP number to continue
+;	CALL	  #FLT_xxx     ; Calculate next result
+;	....	  ........     ; Continue until final result is calculated
+;	CALL	  #CNV_FP_BCD  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+;	POP	  bcdmsd       ; BCD number MSDs and sign
+;	POP	  bcdmid       ; BCD digits MSD-4 to LSD+4
+;	POP	  bcdlsd       ; BCD digits LSD+3 to LSD
+;			       ; Stack is corrected by POPs
+;	CALL	  #FLT_REC     ; Restore registers
+;	....	  ........     ; Continue with program
+;
+;===========================================================================
+; The flag SW_RND is defined in the user's program:
+;
+; SW_RND    EQU        0       ; 0: no rounding    1: rounding used
+;
+;   BEGIN OF THE FLOATING POINT CONVERSION SUBROUTINES
+;
+; Integer to Floating Point Conversions. A 3-word buffer is prepared and
+; and converted. All conversions use this register buffer BIN_MSB to BIN_LSB.
+;---------------------------------------------------------------------------
+; 40 Bit binary to floating point (signed and unsigned). RPARG points to MSBs
+; of a 3 word buffer. Range: -2^40+1 to +2^40-1 (-1.099x10^12 to +1.099x10^12)
+; FF00 0000 0001 to 00FF FFFF FFFF
+;
+; Call    MOV   #BINMSB,RPARG   ; Pointer to MSBs of a 3 word number
+;         CALL  #CNV_BIN40      ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+CNV_BIN40 MOV    @R5+,BIN_MSB
+	  JMP	 CNVL$1
+
+;---------------------------------------------------------------------------
+; 32 Bit binary to floating point (signed). RPARG points to MSBs
+; of a 2 word buffer. Range: -2^31 to +2^31-1 (-2.14x10^9 to +2.14x10^9)
+;
+; Call    MOV   #BINMSB,RPARG   ; Pointer to MSBs of a 2 word number
+;         CALL  #CNV_BIN32      ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+CNV_BIN32 TST    0(R5)          ; Check sign
+          JGE    CNV_BIN32U     ; Pos.: Use 32 bit unsigned conversion
+          MOV    #0FFFFh,BIN_MSB ; Neg. number: set MSBs to FFFF
+          JMP    CNVL$1
+;
+;---------------------------------------------------------------------------
+; 32 Bit unsigned binary to floating point conversion. RPARG points to MSBs
+; of a two word buffer. Rang e: 0...2^32-1
+;
+; Call    MOV   #BINMSB,RPARG   ; Pointer to MSBs of a 2 word number
+;         CALL  #CNV_BIN32U     ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+CNV_BIN32U CLR   BIN_MSB        ; High word is cleared
+CNVL$1    MOV    @R5+,BIN_MID
+          MOV    @R5,BIN_LSB
+          JMP    CNV_BIN
+;
+;---------------------------------------------------------------------------
+; 16 Bit binary to floating point (signed). RPARG points to value.
+; Range: -2^15 to +2^15-1 (-32768 to +32767)
+;
+; Call    MOV   #BINMSB,RPARG   ; Pointer to MSBs of a 1 word number
+;         CALL  #CNV_BIN16      ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+CNV_BIN16 TST    0(R5)          ; Check sign
+	  JGE	 CNV_BIN16U	; Use 16 bit unsigned conversion
+          MOV    #0FFFFh,BIN_MID ; Neg. number: set MSBs to FFFF FFFF
+          MOV    #0FFFFh,BIN_MSB
+          JMP    CNVL$2
+;
+;---------------------------------------------------------------------------
+; 16 Bit binary to floating point (unsigned). RPARG points to value.
+; Range: 0 to +2^16-1 (0 to 65365)
+;
+; Call    MOV   #BINMSB,RPARG   ; Pointer to MSBs of a 1 word number
+;         CALL  #CNV_BIN16U     ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+CNV_BIN16U CLR	 BIN_MSB	; Set MSBs to zero
+	  CLR	 BIN_MID
+CNVL$2    MOV    @R5,BIN_LSB
+
+;---------------------------------------------------------------------------
+; 48-bit signed integer in BIN_MSB to BIN_LSB
+; This call may be used if the 48-bit number is yet in BIN_MSB to BIN_LSB
+;
+; Call    MOV   binmsb,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+;         MOV   binmid,BIN_MID  ;
+;         MOV   binlsb,BIN_LSB  ; Load LSBs
+;         CALL  #CNV_BIN        ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+CNV_BIN   MOV	 BIN_MSB,2(SP)	; Store MSBs with sign in result MSBs
+          TST    BIN_MSB        ; Check sign of number
+          JGE    NORM           ; Pos.: yet ok
+          INV    BIN_LSB        ; Neg.: Absolute value needed
+          INV    BIN_MID        ; Invert value of 3-word buffer
+          INV    BIN_MSB
+          INC    BIN_LSB        ; Complement 3-word buffer
+          ADC    BIN_MID
+          ADC    BIN_MSB
+	  JMP	 NORM		; Go to common conversion part
+;
+;---------------------------------------------------------------------------
+; BCD to Floating Point Conversion. A 3-word buffer containing a signed BCD-
+; integer number is converted to a 32 bit or 48 bit floating point number.
+; RPARG points to the MSD word of the buffer. The MSB of this word contains
+; the sign: 0 = positive, 1 = negative
+; Range: -8x10^11 + 1 to +8x10^11 - 1
+;
+; Call:   RPARG points to MSDs of BCD-Buffer  (sign in MSB of MSD)
+; Return: RPARG, RPRES and SP point to result on TOS
+;
+; Call    MOV   #BCDbuffer,RPARG   ; Pointer to MSDs of a 3 word buffer
+;         CALL  #CNV_BCD_FP     ; Call conversion routine
+;         ...                   ; Result on TOS (2 or 3 words FP number)
+;
+;
+CNV_BCD_FP EQU   $
+          MOV    RPARG,RPRES    ; Copy pointer
+          IF     DOUBLE=1
+          MOV    @R11+,BCD_MSB  ; Sign, MSD to MSD-3
+          MOV    @R11+,BCD_MID  ; MSD-4 to LSD+4
+          MOV    @R11,BCD_LSB   ; LSD+3 to LSD
+          ELSE
+          MOV    @R9+,BCD_MSB   ; Sign, MSD to MSD-3
+          MOV    @R9+,BCD_MID   ; MSD-4 to LSD+4
+          MOV    @R9,BCD_LSB    ; LSDs
+          ENDIF
+          MOV    BCD_MSB,2(SP)  ; Store MSBs with sign in result space
+          CLR    BIN_MSB        ; Clear binary buffer
+          CLR    BIN_MID
+          CLR    BIN_LSB
+;
+; BCD to Binary Conversion: 12 BCD-digits to 40 bit binary
+;
+	  MOV	 #12*4,COUNTER	; Digit counter x 4 bits
+          BIC    #08000h,BCD_MSB     ; Clear sign bit
+BCD_LOP1  RLA    BIN_LSB        ; MPY binary result with 10
+          RLC    BIN_MID
+          RLC    BIN_MSB
+          PUSH   BIN_MSB        ; Store doubled value
+          PUSH   BIN_MID
+          PUSH   BIN_LSB
+          RLA    BIN_LSB        ; x 4
+          RLC    BIN_MID
+          RLC    BIN_MSB
+          RLA    BIN_LSB        ; x 8
+          RLC    BIN_MID
+          RLC    BIN_MSB
+          ADD    @SP+,BIN_LSB   ; x(8 + 2)
+          ADDC   @SP+,BIN_MID
+          ADDC   @SP+,BIN_MSB
+;
+	  CLR	 HELP		; BCD digit buffer
+CNVL$5	  RLA	 BCD_LSB	; Next BCD digit to HELP
+          RLC    BCD_MID
+          RLC    BCD_MSB
+	  RLC	 HELP		; insert BCD number
+	  DEC	 COUNTER
+	  BIT	 #3,COUNTER	; One BCD digit stored?
+          JNZ    CNVL$5         ; Not yet, continue
+;
+	  ADD	 HELP,BIN_LSB	; BCD digit buffer contains BCD digit
+	  ADC	 BIN_MID	; Add BCD digit to binary buffer
+          ADC    BIN_MSB
+	  TST	 COUNTER	; 12 BCD digits converted?
+          JNZ    BCD_LOP1       ; No, next digit
+;
+; The converted binary number (max. 40 bits) is in the binary buffer.
+; Shift left mantissa now until MSB = 1 (bit 7 of BIN_MSB). Create FP-sign
+;
+NORM	  SWPB	 2(SP)		; Stored sign from bit 15 to bit 7
+	  AND	 #080h,2(SP)	; only sign remains
+	  MOV.B  #080h+39,COUNTER ; max. exponent: true if MSB yet 1
+NORM_LOP  TST.B  BIN_MSB	; Check if MSB = 1
+          JN     NORMED         ; MSB = 1: normed mantissa
+          RLA    BIN_LSB        ; Shift left 40 bit mantissa
+          RLC    BIN_MID
+          RLC.B  BIN_MSB
+	  DEC.B  COUNTER	; Max. 39 times, decr. exponent
+	  JN	 NORM_LOP	; if exponent < 080h: number < 1
+;
+; BCD number is 0: MSB is still 0 after 40 shifts. Output zero
+;
+	  JMP	 RES0		; Result is .FLOAT/.DOUBLE zero
+;
+; MSB of mantissa is 1 now: COUNTER contains exponent. Prepare FP number
+; Rounding necessary only for .FLOAT format: .DOUBLE contains all 40 bits
+; The completion part of the FPP is used for the number generation
+;
+NORMED	 MOV.B	 COUNTER,3(SP)	; Exponent in FPP format
+      IF (DOUBLE=0) AND (SW_RND=1)  ; Conditions for rounding
+	 RLA	 BIN_LSB	; MSB of BIN_LSB to carry (LSB-1)
+	 JMP	 NORMLZ 	; Round mantissa with this bit
+      ELSE
+	 JMP	 DDRNZ		; Output FPP number without rounding
+      ENDIF
+;
+;---------------------------------------------------------------------------
+; Floating Point to Binary Conversion: the integer part of the Floating
+; Point number RPARG points to is converted to a 40 bit signed binary number
+; on top of the stack: (range FF00 0000 0001 to 00FF FFFF FFFF)
+;
+; Call:   RPARG points to the .FLOAT resp. .DOUBLE format number
+; Return: the converted, signed 40 bit binary number is located on top
+;	  of the stack (3 words). RPRES, RPARG and SP point to TOS
+; Errors: N = 0: no error  (3 words result on TOS)
+;	  N = 1: FP number > 2^39. The largest signed binary number is
+;		 placed on TOS (00FF FFFF FFFF resp. FF00 0000 0001)
+;
+; Call    MOV   #FPnumber,RPARG ; Pointer to MSBs of a FP number
+;         CALL  #CNV_FP_BIN     ; Call conversion routine
+;	  JN	ERROR		; N=1: Largest number on TOS (3 words)
+;         ...                   ; N=0: Result on TOS (3 words binary number)
+;
+CNV_FP_BIN  EQU  $
+	  MOV	 #0FFFFh,HELP	; Set switch to binary conversion
+	  JMP	 CNV_FP_GEM	; Use CNV_FP_BCD FP to binary part
+;
+;---------------------------------------------------------------------------
+; Floating Point to BCD Conversion: the integer part of the Floating
+; Point number RPARG points to is converted to a 12 digit BCD number
+; on top of the stack:
+;
+; Call:   RPARG points to .FLOAT resp. .DOUBLE format number
+; Return: the converted, signed 12 digit BCD number is located on top
+;         of the stack (3 words)
+; Errors: N = 0: no error  (3 words result on TOS)
+;	  N = 1: |FP number| > 2^39 or |BCD number| >= 8 x 10^12
+;		 The largest signed BCD number is placed on TOS:
+;		 (+7999 9999 9999 resp. -7999 9999 9999)
+;
+; Call    MOV   #FPnumber,RPARG ; Pointer to MSBs of a FP number
+;         CALL  #CNV_FP_BCD     ; Call conversion routine
+;	  JN	ERROR		; N=1: Error: largest number on TOS (3 words)
+;         ...                   ; N=0: Result on TOS (3 words BCD number)
+;
+CNV_FP_BCD MOV	 #0h,HELP	; Set switch to BCD conversion
+CNV_FP_GEM  EQU  $                       ; Common part
+          MOV.B  1(R5),COUNTER        ; Save exponent of FP number
+          MOV    @R5+,BIN_MSB         ; Move FP number to BIN_xxx
+          MOV    @R5+,BIN_MID
+      IF  DOUBLE=1
+          MOV    @R5,BIN_LSB
+      ELSE
+	  CLR	 BIN_LSB	; LSBs = 0 for .FLOAT numbers
+      ENDIF
+	  PUSH	 BIN_MSB	; Save FP MSBs with sign
+;
+	  BIS.B  #080h,BIN_MSB	; Set hidden bit in mantissa, clear HI byte
+;
+; The mantissa in BIN_xxx is shifted until the 2^0 bit is at the LSB
+; of BIN_LSB: this is the case if the exponent (in COUNTER) is 080h+39
+;
+      IF  SW_RND
+	  CLR	 BCD_LSB	; Clear Carry save for rounding
+      ENDIF
+EXP_LOP2   EQU   $
+	  CMP.B  #080h+39,COUNTER     ; Exponent = 080h+39?
+	  JEQ	 B_CNV		; Yes, binary buffer contains integer now
+	  JHS	 CNV_ERR4	; FP number too large for BCD buffer (C = 1)
+	  RRC	 BIN_MSB	; BIN_MSB: 00xxh  Carry = 0
+	  RRC	 BIN_MID	; Exponent < 39: shift right binary buffer
+	  RRC	 BIN_LSB
+      IF  SW_RND
+	  MOV	 SR,BCD_LSB	; Save last carry for rounding
+      ENDIF
+	  INC.B  COUNTER	; Incr. exponent
+	  JMP	 EXP_LOP2
+
+; 2^0 bit in BIN_LSB.0:
+; Rounding is made if selected. The 2^-1 bit (LSB-1) is added
+;
+B_CNV      equ  $
+      IF   SW_RND               ; Rounding selected?
+	  BIT	#FC,BCD_LSB	; Test last carry for rounding
+          ADC   BIN_LSB         ; Add it to binary buffer
+          ADC   BIN_MID
+          ADC   BIN_MSB
+      ENDIF
+;
+; The value in HELP defines the kind of conversion:
+; BCD_MSB = 0: FP to BCD conversion
+; BCD_MSB # 0: FP to binary conversion
+
+	  TST	HELP
+          JZ    BCD_CNV
+;
+; Floating Point to Binary Conversion:
+; The integer in the binary buffer is converted to signed binary
+;
+          MOV   BIN_LSB,BCD_LSB ; Move integer to BCD buffer
+          MOV   BIN_MID,BCD_MID
+          MOV   BIN_MSB,BCD_MSB
+	  CLR	HELP		; No error indication
+;
+FPBIN	  POP	COUNTER 	; Restore MSBs and sign of FP number
+	  TST.B COUNTER 	; Test sign
+          JGE   CNVL$10         ; Sign is positive, output integer
+          INV   BCD_LSB         ; Neg.sign: negate integer
+          INV   BCD_MID
+          INV   BCD_MSB
+          INC   BCD_LSB
+          ADC   BCD_MID
+          ADC   BCD_MSB
+          JMP   CNVL$10         ; Use common output part
+;
+; Floating Point to BCD Conversion:
+; The integer in the binary buffer is converted to BCD in the BCD buffer
+;
+BCD_CNV   MOV	#40,COUNTER	; 40 binary bits max.
+          CLR   BCD_LSB         ; Clear BCD buffer
+          CLR   BCD_MID
+          CLR   BCD_MSB
+BCD_LOP2  RLA   BIN_LSB         ; Start binary to BCD conversion
+          RLC   BIN_MID
+	  RLC.B BIN_MSB 	; Only LO byte of MSBs is used: 00xx
+          DADD  BCD_LSB,BCD_LSB ; Carry to LSB, double BCD-number
+          DADD  BCD_MID,BCD_MID
+          DADD  BCD_MSB,BCD_MSB
+	  JC	CNV_ERR3	; Error: |FP number| >= 1 x 10^12
+	  JN	CNV_ERR3	;	 |FP number| >= 8 x 10^11
+	  DEC	COUNTER
+	  JNZ	BCD_LOP2	; No error: HELP = 0
+;
+; The BCD buffer contains the converted 12 digit number: insert sign
+;
+FPBCD	  POP	COUNTER 	; Restore MSBs and sign of FP number
+	  TST.B COUNTER 	; Test sign
+          JGE   CNVL$10         ; Sign is positive
+          BIS   #08000h,BCD_MSB ; Insert neg. sign to BCD buffer
+CNVL$10    EQU  $
+;
+; Write result on top of stack
+; .FLOAT:  One additional word is needed for the result. Push return address
+; .DOUBLE: Three words for result are available
+;
+      IF  DOUBLE=0              ; .DOUBLE format places 3 words on stack
+	  PUSH	2(SP)		; .FLOAT format: PUSH return address
+      ENDIF                     ; to get room for 3 word result
+          MOV   BCD_LSB,6(SP)   ; BCD result to stack
+          MOV   BCD_MID,4(SP)
+          MOV   BCD_MSB,2(SP)   ; MSDs on TOS (after return)
+	  JMP	FLT_END 	; Use FPP completion part
+;
+; Error: |FP number| >= 1 x 10^12 or >= 8 x 10^11. N = 1
+; Return with largest,signed BCD-number on TOS.
+;
+CNV_ERR3  MOV	#07999h,BCD_MSB ; largest BCD number
+	  MOV	#09999h,BCD_MID ; 7999 9999 9999
+	  MOV	#09999h,BCD_LSB
+	  MOV	#FN,HELP	; indicate error
+	  JMP	FPBCD		; output this number signed
+;
+; Error: |FP number| > 2^39. Check if BCD or binary conversion
+;
+CNV_ERR4  TST	HELP		; FP_BIN or FP_BCD?
+	  JZ	CNV_ERR3	; FP_BCD conversion: output BCD number
+          MOV.B #0FFh,BCD_MSB   ; FP_BIN conversion: output largest binary
+	  MOV	#0FFFFh,BCD_MID ; number: 00FF FFFF FFFF
+	  MOV	#0FFFFh,BCD_LSB
+	  MOV	#FN,HELP	; indicate error
+	  JMP	FPBIN		; output this number signed 
+;
+;   END OF THE FLOATING POINT CONVERSION SUBROUTINES

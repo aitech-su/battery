@@ -1,0 +1,251 @@
+;*********************************************
+;發電機測試 max min
+;***************************************************
+
+;**************************************************
+;**********************************************************************
+;發電電壓測試程式 3000RPM start  max_min   
+;**********************************************************************
+generator         
+          MOV       #00,KEY_VAL
+          ;call      #detect_clips
+          call     #LCM_INITIAL
+          CALL     #disgenerator
+          MOV.B     #2,ITEM
+
+
+generator_L1
+           bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+           CMP.B     #ESC,KEY_VAL
+           JEQ       SELECT_BATT_GENERATOR_rep2
+           CMP.B     #ENTER,KEY_VAL
+           JEQ       generator_max_min_test
+           JMP       generator_L1
+;**********************************************************************
+;發電電壓測試程式   3000RPM max_min
+;**********************************************************************
+generator_max_min_test
+
+          MOV       #00,r3000_max_v
+          MOV       #4095,r3000_min_v
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          CALL     #disgenerator_3000_rpm
+          CALL     #dis_enter_test
+
+gen_max
+              mov       #20,now_conter
+              ;call      #delay6
+              call      #adc_3_avg
+              MOV       adc_,adc3
+              
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+              
+            mov     adc3,r3000_now_v                ;Move result
+
+            MOV       r3000_now_v,R12
+            call      #BIN2BCD4
+            ;MOV                r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_now
+            
+gen_max_L1
+             dec        now_conter
+             jz        gen_max
+             
+             bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+             CMP.B     #ESC,KEY_VAL
+             JEQ       generator
+             CMP.B     #ENTER,KEY_VAL
+             JEQ       generator_val
+
+             call      #adc_3_avg
+            mov     adc_,adc3                ;Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+
+            CMP      r3000_max_v,adc3
+            JEQ       gen_min
+            CMP      r3000_max_v,adc3
+            JL       gen_min
+            mov     adc3,r3000_max_v                 ;Move result
+            MOV       r3000_max_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_max
+            ;call     #BEEP
+
+gen_min
+            ;call      #delay_1ms
+             call      #adc_3_avg
+            mov     adc_,adc3 
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+
+            CMP      r3000_min_v,adc3            
+            JGE      gen_max_L1
+            mov     adc3,r3000_min_v                 ;Move result
+            MOV       r3000_min_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_min
+            ;call     #BEEP
+            JMP     gen_max_L1
+
+
+;**********************************************************************
+;發電量測試程式 2000RPM start  max_min
+;**********************************************************************
+generator_val
+          MOV       #00,KEY_VAL
+
+          call     #LCM_INITIAL
+          CALL     #disgenerator_val
+
+
+generator_val_L1
+
+           bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+           CMP.B     #ESC,KEY_VAL
+           JEQ       generator
+           CMP.B     #ENTER,KEY_VAL
+           JEQ       generator_val_max_min_test
+           JMP       generator_val_L1
+
+;**********************************************************************
+;發電量測試程式 2000RPM
+;**********************************************************************
+generator_val_max_min_test
+
+           MOV       #00,r2000_max_v
+          MOV       #4095,r2000_min_v
+          MOV       #00,KEY_VAL
+          call     #LCM_INITIAL
+          CALL     #disgenerator_2000_rpm
+
+gen_val_max
+               mov       #20,now_conter
+              ;call      #delay6
+
+             call      #adc_3_avg
+              mov      adc_,adc3
+              
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+
+            mov     adc3,r2000_now_v                ;Move result
+            MOV       r2000_now_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_now
+
+gen_val_max_L1
+             dec        now_conter
+             jz        gen_val_max
+
+
+             bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+             CMP.B     #ENTER,KEY_VAL
+             JEQ       print_gener_start
+             CMP.B     #ESC,KEY_VAL
+             JEQ       generator
+
+             call      #adc_3_avg
+            mov     adc_,adc3                ;Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+
+            CMP      r2000_max_v,adc3
+            JEQ       gen_val_min
+            CMP      r2000_max_v,adc3
+            JL       gen_val_min
+            mov     adc3,r2000_max_v                 ;Move result
+            MOV       r2000_max_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_max
+           ; call     #BEEP
+
+gen_val_min
+            ;call      #delay_1ms
+
+             call      #adc_3_avg
+            mov     adc_,adc3
+            
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+              
+            CMP      r2000_min_v,adc3
+            JGE      gen_val_max_L1
+            mov     adc3,r2000_min_v                 ;Move result
+            MOV       r2000_min_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_min
+           ;call     #BEEP
+            JMP     gen_val_max_L1
+
+print_gener_start
+            mov.b         #00h,KEY_VAL
+            MOV.B     #00,nopaper_val
+             MOV.B     #00,nopaper_val_1
+            call          #print
+             mov.b         #00h,KEY_VAL
+               CMP.B     #00,nopaper_val_1
+               JEQ        generator_print_end
+generator_print_re_display_generator
+            call     #LCM_INITIAL
+            call     #re_display_generator
+             MOV.B     #00,nopaper_val
+
+generator_print_end
+             bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+             CMP.B     #ENTER,KEY_VAL
+             JEQ       print_gener_start
+             CMP.B     #ESC,KEY_VAL
+             JEQ       SELECT_BATT_GENERATOR_rep2
+             
+            CMP.B             #19,&RXBUF0
+            JNE               generator_print_end             
+             ;bit.b           #nopaper,P5IN
+             ; jnz            generator_print_end
+             
+              CMP.B     #01,nopaper_val_1
+              JEQ        generator_print_end
+              call           #disnopaper
+              
+             CMP.B             #19,&RXBUF0
+            JNE                generator_print_re_display_generator            
+             ;bit.b           #nopaper,P5IN
+              ;jnz            generator_print_re_display_generator
+              
+             JMP       generator_print_end
+             
+;***********************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;***********************************       
+SELECT_BATT_GENERATOR_rep2
+
+          mov       #SELECT_BATT_GENERATOR,pc             
+             

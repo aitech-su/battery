@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userOverrides>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\adc.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\batterytestcalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\disnumber.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\disver.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\keyscan.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\logo.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\print.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\batt_print_com\bbpprog\testmode.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\battf149\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\battf149\bbpprog\batterytestcalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\battf149\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\james\Desktop\batt24v\battf149\bbpprog\testmode.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\0-9.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\adc.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\autopoweradj.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\battery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\batterytestcalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\batterytestset.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\detect.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disagm.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disbattery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disbattgenerator.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disdetect.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disgenerator.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\dislanguage.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disnopaper.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disnumber.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disselvotage.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disslv.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\disver.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\generatortest.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\keyscan.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\languagesel.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\print.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\printsquarecalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\redisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\slv.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\table.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\Users\su\Desktop\batt24v\battprint24_all clor3\bbpprog\testmode.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\0-9.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\battery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\batterytestset.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\battprint.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\detect.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\disbattery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\generatortest.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\languagesel.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\print.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\printsquarecalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\1USB3.0\1Drivehp\battprint24_all clor\bbpprog\slv.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>C:\WLS\USB3.0\1Drivehp\brakebatt\bbpprog\batterytestcalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\battery.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\USB3.0\1Drivehp\battprint24_all clor\bbpprog\lcddisplay.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>I:\batt24v\battprint24_all\bbpprog\disnopaper.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>I:\batt24v\battprint24_all clor3\bbpprog\FPP.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>I:\batt24v\battprint24_all clor3 - 複製 (5)\bbpprog\batterytestcalculate.s43</path>
+        <encoding>System</encoding>
+    </override>
+</userOverrides>

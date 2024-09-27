@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userOverrides>
+    <override>
+        <path>D:\Desktop\1bproduct\battpcb5.0\battvat577\prog5.0\battprintmain.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\battpcb5.0\battvat577\prog5.0\key_index.s43</path>
+        <encoding>System</encoding>
+    </override>
+    <override>
+        <path>D:\Desktop\1bproduct\battpcb5.0\battvat577\prog5.0\languagesel.s43</path>
+        <encoding>System</encoding>
+    </override>
+</userOverrides>

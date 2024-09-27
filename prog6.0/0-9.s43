@@ -1,0 +1,57 @@
+;*************************************************************
+;盢(0-9)┰计,锣传癸莱
+;**************************************************************
+;**********************************************
+;               mov.b         #00h,LCMTEMP    *
+;               call            #scan_0_9       *
+;**********************************************
+SCAN_0_9 
+            MOV       #SCAN_0_9_TABLE,R4
+            MOV.B     LCMTEMP,R5
+            RLA       R5
+            ADD       R5,R4
+            BR        R4
+
+SCAN_0_9_TABLE
+           jmp        SCAN_0 
+           jmp        SCAN_1
+           jmp        SCAN_2
+           jmp        SCAN_3
+           jmp        SCAN_4
+           jmp        SCAN_5
+           jmp        SCAN_6
+           jmp        SCAN_7
+           jmp        SCAN_8
+           jmp        SCAN_9
+
+SCAN_0
+		MOV		#N_0,TABLE	        ;盢计0TABLE竚DPTR
+		RET
+SCAN_1		
+		MOV		#N_1,TABLE		;盢计1TABLE竚DPTR
+		RET
+SCAN_2		
+		MOV		#N_2,TABLE		;盢计2TABLE竚DPTR
+		RET
+SCAN_3		
+		MOV		#N_3,TABLE		;盢计3TABLE竚DPTR
+		RET
+SCAN_4		
+		MOV		#N_4,TABLE		;盢计4TABLE竚DPTR
+		RET
+SCAN_5		
+		MOV		#N_5,TABLE		;盢计5TABLE竚DPTR
+		RET
+SCAN_6		
+		MOV		#N_6,TABLE		;盢计6TABLE竚DPTR
+		RET
+SCAN_7		
+		MOV		#N_7,TABLE	        ;盢计7TABLE竚DPTR
+		RET
+SCAN_8		
+		MOV		#N_8,TABLE		;盢计8TABLE竚DPTR
+		RET
+SCAN_9		
+		MOV		#N_9,TABLE	        ;盢计9TABLE竚DPTR
+		RET
+		

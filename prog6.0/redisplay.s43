@@ -1,0 +1,129 @@
+;**********************************************************
+;no paper
+;**********************************************************
+re_display_battery
+           call     #LCM_INITIAL 
+             CALL     #DISPLAY4
+             MOV       adc3,R12
+            call      #BIN2BCD4
+            ;MOV	  r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_ADC3
+redis_cca
+
+            CMP.B     #2,PATTERN
+            JNE       redis_en
+            MOV       CCA_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+             ;CALL      #BCD_SWPB
+               call      #DIS_CCA
+               call      #UNIT_CCA_2 
+             jmp       redis_PERCEN
+redis_en
+
+            CMP.B     #3,PATTERN
+            JNE       redis_din
+            MOV       EN_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+             ;CALL      #BCD_SWPB
+               call      #DIS_CCA
+               call      #UNIT_EN_2
+             jmp       redis_PERCEN
+redis_din
+            CMP.B     #4,PATTERN
+            JNE       redis_iec
+            MOV       DIN_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+             ;CALL      #BCD_SWPB
+               call      #DIS_CCA
+               call      #UNIT_DIN_2
+             jmp       redis_PERCEN
+
+redis_iec
+            CMP.B     #5,PATTERN
+            JNE       redis_unknow
+            MOV       IEC_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+             ;CALL      #BCD_SWPB
+               call      #DIS_CCA
+               call      #UNIT_IEC_2
+               ;jmp       redis_PERCEN 
+redis_PERCEN
+            MOV       PERCEN_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+        ;CALL      #BCD_SWPB
+        call      #DIS_100 
+        
+redis_REPLACE       
+        call      #CALCULATE_GOOD_REPLACE       ;因為 call #re_display_battery  內有call  #LCM_INITIAL 所以要重新計算與顯示 
+                                                ;因為 狀況太多無法從batt test移植過來所以重新計算與顯示 
+redis_MR
+           MOV	  RES_VAL_M_BCD,BCD_MID
+           MOV	  RES_VAL_L_BCD,BCD_LSB
+           CALL      #BCD_SWPB
+           call      #DIS_MR           
+            
+               ret               
+               
+redis_unknow
+            MOV       CCA_VAL,R12
+          call      #BIN2BCD4
+          ;MOV	  r13,BCD_LSB
+             ;CALL      #BCD_SWPB
+               call      #DIS_CCA
+               call      #UNIT_CCA_2
+               JMP       redis_MR
+          
+
+;*************************************************************
+;re display generator
+;**********************************************************
+re_display_generator
+
+                  CALL     #disgenerator_2000_rpm
+
+                              MOV       r2000_now_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_now
+
+                        MOV       r2000_max_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_max
+
+                        MOV       r2000_min_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_gen_val_min
+
+            ret
+
+;*************************************************************
+;re display slv
+;**********************************************************
+re_display_slv
+
+            CALL     #disslv
+
+            MOV       slv_now_v,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_OCV
+            CALL     #DIS_9_6V
+            MOV       SLV,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_SLV
+
+            ret

@@ -1,0 +1,117 @@
+;****************************************
+;KEY REG
+;****************************************
+	
+;*******************************************************
+;ENTER       EQU       0BBH
+;ESC         EQU       0DDH
+;UP          EQU       07BH
+;DOWN        EQU       0DBH
+;RIGHT       EQU       0B7H
+;LEFT        EQU       0BDH
+;MENU        EQU       0BBH    
+;******************************************************* 
+
+keyscan
+            bis.b     #0fh,&P1DIR
+            bis.b     #0f0h,&P1IES
+            bis.b     #0f0h,&P1IE                       ;致能p1.7~p1.4 中斷
+            bic.b     #0fh,&P1OUT
+            eint
+            ret
+
+
+P1ISR
+            PUSH        delaytemp0                      ;在call delay時產生中斷 delaytemp0會被改掉
+             PUSH      R4
+            PUSH      R11
+            PUSH      R10
+            PUSH      R15
+            PUSH      R9
+            ;bis.b     #backlight,&P5OUT
+            ;CALL      #baklight_power_off
+
+            bic.b     #0f0h,&P1IE         ;取消 p1.7~p1.4 中斷
+            mov.b     #00h,&P1IFG         ;清空p1ifg
+
+scan        mov.b     #11110111b,r11      ;鍵盤掃瞄資料
+            mov.b     #4,r10              ;共有 4 行
+
+
+next        mov.b     r11,&P1OUT          ;將掃描資料送至鍵盤
+            mov.b     #030,r15            ;等輸出資料穩定
+w3          dec       r15
+            jnz       w3
+            mov      #1000,r15            ;
+DU_1        mov.b     P1IN,r9             ;將按按鍵資料存到 r9
+            bis.b     #0fh,r9             ; 4 位元資料設為1
+            cmp.b     #0ffh,r9             ;判斷是否有按鍵盤
+            jne       keyin
+            rra.b     r11                 ;將掃描資料右旋,準備掃描下一行
+            dec       r10
+            jnz       next                ;判斷是否掃瞄4次,還沒4次則掃瞄下一行
+            jmp       r_p1int
+
+keyin
+            dec       r15
+            jnz       DU_1
+            and.b     r11,r9              ;利用 r11(掃描資料)和r9(讀回資料)解出按鍵的行列值
+
+            call      #BEEP                ;執行判斷按鍵副程式
+
+            MOV.B     R9,KEY_VAL
+;-----------------------------------------------------------------
+            mov      #8000,r15
+wait_kb
+            cmp.b       #2,PATTERN
+            jeq        time_on
+            cmp.b       #3,PATTERN
+            jeq        time_on
+            cmp.b       #4,PATTERN
+            jeq        time_on
+            cmp.b       #5,PATTERN
+            jeq        time_on
+            jmp       time_off
+
+time_on     dec       r15
+            jz       key_time_out
+
+time_off
+;-----------------------------------------------------------------------
+;            mov       #100,r4
+            mov.b     P1IN,r9              ;判斷按鍵是否放開
+            bis.b     #0fh,r9
+wait_relase
+            cmp.b     #0ffh,r9
+            jne       wait_kb              ;等按鍵放開
+;            dec       r4
+;            jnz       wait_relase
+
+
+key_time_out
+            call     #KEY_INDEX
+
+r_p1int     bic.b     #0fh,&P1OUT          ;設定p1.3~p1.0 輸出為 0
+                                           ;等待下次中斷
+;----------------------------------------------------------------------
+            cmp.b       #2,PATTERN
+            jeq        time_on_1
+            cmp.b       #3,PATTERN
+            jeq        time_on_1
+            cmp.b       #4,PATTERN
+            jeq        time_on_1
+            cmp.b       #5,PATTERN
+            jeq        time_on_1
+;---------------------------------------------------------------------
+            bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+time_on_1
+            POP      R9
+            POP      R15
+            POP      R10
+            POP      R11
+            POP      R4
+            POP      delaytemp0   
+            RETI
+
+
+

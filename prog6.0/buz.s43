@@ -1,0 +1,57 @@
+;*******************************************************
+;BEEP PIN REG				 		;BEEP 竲﹚竡						
+;*************************************************
+;#define     buz         (BIT6)
+;****************************************
+;BEEP REG
+;****************************************
+;r6           		;纗 buzzer Ω计
+;*******************************************************
+
+;***************************************************
+;BEEP  
+;***************************************************
+;BEEP
+                ;dint
+		;mov.w	#300,beep_length	;buzzer Ω计 300               
+;t_e
+                ;xor.b   #buz_BIT_OUT              ; Toggle P1.0
+                ;call    #delay_100us 
+                ;dec     beep_length
+                ;jnz     t_e 
+                ;eint
+		;ret 
+
+
+
+;------------------------------------------------------------------------------
+;TA0_ISR;
+;------------------------------------------------------------------------------	
+                ;reti
+
+BEEP
+
+		mov.w	#300,beep_length		;buzzer Ω计 300
+SetupC0         mov.w   #CCIE,&CCTL0                    ; CCR0 interrupt enabled
+                mov.w   #0150,&CCR0                     ;buzzer DIP 1205 ノ 150SMD MLT8530 3.6V ノ 125 
+SetupTA         mov.w   #TASSEL_2+MC_1+TACLR,&TACTL           ; SMCLK, contmode
+                                                        ;						
+                 bis.w   #GIE,SR                        ;interrupts enabled
+                 EINT
+		ret
+
+;------------------------------------------------------------------------------
+TA0_ISR               ;
+;------------------------------------------------------------------------------	
+
+                xor.b   #buz_BIT_OUT                      ; Toggle P1.0
+
+                dec     beep_length
+                jnz     t_e
+		mov.w	#300,beep_length		;restore buzzer Ω计 300
+		bic.w   #CCIE,&CCTL0                    ; CCR0 interrupt disabled
+		bic.b   #buz_BIT_OUT	
+t_e:
+		 	
+		reti
+		

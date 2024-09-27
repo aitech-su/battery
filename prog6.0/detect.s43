@@ -1,0 +1,294 @@
+;****************************************
+;detect connect & engine & surface voltage
+;****************************************
+;#define    ADC0_1       0340h+4
+;#define    ADC1       0340h+6
+;#define    adc2       0340h+8	
+
+;*************************************************************************************
+;test prog     
+;*************************************************************************************		
+detect_connect
+                call      #adc_2_avg
+
+                mov     adc_,adc2                 ; Move result
+
+                cmp     #4000,adc2
+                jge     dis_detect_connect_black
+                cmp     #0500,adc2
+                jl      dis_detect_connect_red
+                ret
+;*****************************************************************************
+;
+;************************************************************
+detect_connect_engine
+                call      #adc_3_avg
+                mov     adc_,adc3                 ; Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ; auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           engine_24V 
+                cmp     #1350,adc3
+                jge     dis_detect_engine
+                jmp      detect_connect_low_voltage 
+engine_24V                
+                cmp     #2700,adc3
+                jge     dis_detect_engine                
+
+detect_connect_low_voltage
+                CMP.B     #1,low_voltage_index
+                JEQ       detect_connect_surface
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           low_voltage_24V                                 
+                cmp     #1230,adc3
+                jl      dis_detect_low_voltage
+                jmp       detect_connect_surface
+low_voltage_24V                
+                cmp     #2460,adc3
+                jl      dis_detect_low_voltage
+                
+                
+detect_connect_surface
+                CMP.B     #1,surface_voltage_index
+                JEQ       detect_connect_surface_1
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           surface_24V                
+                cmp     #1310,adc3
+                jge     dis_detect_surface
+                jmp      detect_connect_surface_1     
+surface_24V
+                cmp     #2620,adc3
+                jge     dis_detect_surface
+                
+detect_connect_surface_1
+
+                ret	
+
+;*******************************************************
+;鱷魚夾未夾好   黑  請重新連接
+;*******************************************************
+dis_detect_connect_black
+                call     #LCM_INITIAL
+                call      #dis_detect_connect_black_LINE
+		
+;*******************************************************  
+			
+black               call      #adc_2_avg
+
+                mov     adc_,adc2                 ; Move result
+
+                call     #BEEP
+                call      #delay_500ms	
+
+                cmp     #4000,adc2
+                jge      black
+                 call     #LCM_INITIAL
+		jmp             detect_connect
+		
+;***********************************************************************************************
+;鱷魚夾未夾好   紅  請重新連接
+;*******************************************************		
+dis_detect_connect_red
+                call     #LCM_INITIAL
+                call      #dis_detect_connect_red_LINE			
+;*******************************************************
+		
+red               call      #adc_2_avg
+
+                mov     adc_,adc2                 ; Move result
+
+                call     #BEEP
+                call      #delay_500ms	
+
+                cmp     #0500,adc2
+                jl      red		
+                 call     #LCM_INITIAL
+		jmp             detect_connect               	
+		
+		
+
+;***********************************************************************************************	
+;請將引擎熄火打開大燈以清除電瓶表面電壓
+;***********************************************************************************
+dis_detect_engine
+                call     #LCM_INITIAL		
+                call      #dis_detect_engine_LINE
+;*******************************************************
+	
+engine                call      #adc_3_avg
+                mov     adc_,adc3                 ; Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+                
+                CMP.B     #ESC,KEY_VAL
+                JNE       engine_L1
+                JMP       SELECT_12V_24V_rep1 
+engine_L1
+                call     #BEEP
+                call      #delay_500ms	
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           engine_L1_24V
+                 
+                cmp     #1350,adc3
+                jge     engine
+                jmp      engine_L1_12V_jmp_point   
+engine_L1_24V                
+                cmp     #2700,adc3
+                jge     engine
+engine_L1_12V_jmp_point                
+                 call     #LCM_INITIAL
+		jmp           dis_detect_surface
+		
+		
+;*************************************************************************************
+;LOW VOLTAGE
+;***********************************************************************************		
+dis_detect_low_voltage
+
+                mov     #1,low_voltage_index
+                mov     #00,KEY_VAL
+                call     #LCM_INITIAL
+                call      #dis_detect_low_voltage_LINE
+;*******************************************************
+		
+low_voltage               call      #adc_3_avg
+                mov     adc_,adc3                 ; Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+
+                call     #BEEP
+                call      #delay_500ms	
+                bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+                CMP.B     #ENTER,KEY_VAL
+                JEQ       low_voltage_1
+                CMP.B     #ESC,KEY_VAL
+                jeq       SELECT_12V_24V_rep1   
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           detect_low_voltage_24V                
+                cmp      #1230,adc3
+                jl       low_voltage 
+                jmp      low_voltage_12V_jmp_poin
+detect_low_voltage_24V                
+                cmp     #2460,adc3
+                jl     low_voltage 
+                
+low_voltage_12V_jmp_poin              
+                  call     #LCM_INITIAL
+                    mov     #00,KEY_VAL
+		jmp             detect_connect
+				
+low_voltage_1	
+                 call     #LCM_INITIAL
+                  mov     #00,KEY_VAL
+               ret
+	
+;*********************************************************************************************
+;清除表面電壓中請稍待
+;***********************************************************************************	
+dis_detect_surface
+
+                mov      #1,surface_voltage_index
+                call     #LCM_INITIAL
+                call      #dis_detect_surface_LINE
+;*******************************************************
+surface_b	
+                mov.w          #02ah,r4           ;15h放電 21 sec ,02ah 放電 42 sec
+		;bic.b           #OUT1_BIT_OUT2    ;24V太燙燒電阻 所以取消放電
+		
+surface               call      #adc_3_avg
+                mov     adc_,adc3                 ; Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+              
+                  call     #BEEP
+                  dec     r4
+                  jz      surface_time_out
+                call      #delay_500ms	
+                               
+                CMP.B     #ESC,KEY_VAL
+                JNE       surface_L1
+                bis.b           #OUT1_BIT_OUT2
+                JMP       SELECT_12V_24V_rep1 
+surface_L1
+                call      #adc_3_avg
+                mov     adc_,adc3                 ; Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           engine_surface_24V                
+                cmp     #1350,adc3
+                jge     surface_1
+                jmp       engine_surface_24V_jmp_point                  
+engine_surface_24V                
+                cmp     #2700,adc3
+                jge     surface_1  
+engine_surface_24V_jmp_point                
+
+                CMP.B     #MENU,KEY_VAL
+                JEQ      detect_end
+                
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           engine_surface_24V_2                 
+ 
+                cmp     #1290,adc3
+                jge      surface
+                jmp           surface_time_out
+                
+engine_surface_24V_2               
+                cmp     #2580,adc3
+                jge      surface                
+                
+surface_time_out
+                call     #dis_light_off
+                 mov     #00,KEY_VAL
+                 bis.b           #OUT1_BIT_OUT2
+surface_2
+                call     #keyscan
+                CMP.B     #ENTER,KEY_VAL
+                JEQ      surface_1
+                jmp      surface_2
+
+
+surface_1         bis.b           #OUT1_BIT_OUT2
+                call     #LCM_INITIAL
+                 mov     #00,KEY_VAL
+		jmp             detect_connect
+		
+detect_end		
+		 bis.b           #OUT1_BIT_OUT2
+                call     #LCM_INITIAL
+                 mov     #00,KEY_VAL
+                 ret
+;***********************************************************************************************	
+;表面電壓清除完成關大燈及所有電源  按進入鍵繼續測試
+;***********************************************************************************		
+dis_light_off
+                call     #LCM_INITIAL
+                call      #dis_light_off_LINE
+		ret
+;***********************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;*********************************** *		
+SELECT_12V_24V_rep1
+                    mov         #SELECT_12V_24V,pc

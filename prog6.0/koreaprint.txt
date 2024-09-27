@@ -1,0 +1,35 @@
+;***********************************************************
+;KOREA PRINT TABLE
+;***********************************************************
+String_SPEC_K     DB 0a0h,50h,0a0h,51h,0A1h,40h,0a0h,0c4h,0a0h,4fh,0A1h,40h,0A1h,40h,0A1h,40h    ;0a140h ªÅ¥ÕÁä
+String_RESULTS_K     DB 0a0h,5ch,0a0h,5dh,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_CHARGRETEST_K     DB 0a0h,7eh,0a0h,4ah,0a0h,0a3h,0a0h,0a4h,0a0h,57h
+String_CELLBAD_K     DB 0a0h,7bh,0a0h,7ch,0a0h,7dh,0a0h,67h
+String_RECHARGE_K     DB 0a0h,7eh,0a0h,4ah,0a0h,0a1h,0a0h,0a2h
+String_INTR_K     DB 0a0h,5fh,0a0h,42h,0a0h,60h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_LIFE_K     DB 0a0h,53h,0a0h,61h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_GOOD_K     DB 0a0h,5eh,0a0h,55h
+String_BAD_K     DB 0a0h,79h,0a0h,7ah
+
+String_NORMALV_K     DB 0a0h,57h,0a0h,51h,0a0h,4ah,0a0h,74h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+String_CRANKV_K     DB 0a0h,4ch,0a0h,4dh,0a0h,4ah,0a0h,74h,0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h
+
+
+;***********************************************************
+;KOREA PRINT TABLE   logo
+;***********************************************************
+String_dt_logo  DB 0A1h,40h,0A1h,40h,020h,020h,  020h,020h,020h,01bh,021h,0ffh,044h,054h,01bh,021h,00h,041h,055h,054h,04fh,054h,04fh,04fh,04ch,053h,0ah,0ah
+;---------------------------------------------------------------------
+String_BATTREPORT_K      DB 0A1h,40h,0A1h,40h,0A1h,40h,0A1h,40h,0a0h,46h,0a0h,47h,0a0h,48h,0a0h,6ah,0a0h,0cah,0a0h,0cbh,0a0h,65h
+String_soc_state_K        DB 0a0h,7eh,0a0h,4ah,0a0h,67h,0a0h,68h
+String_Customer_name_K    DB 0a0h,65h,0a0h,0d1h,0a0h,61h,0a1h,52h
+String_Technician_name_K  DB 0a0h,0d2h,0a0h,0d3h,0a0h,0d4h,0a1h,52h
+
+String_CHARGREPORT_K      DB  0A1h,40h,0A1h,40h,0A1h,40h,0a0h,0a7h,0a0h,0d5h,0a0h,0d6h,0a0h,0d7h,0a0h,6ah,0a0h,0cah,0a0h,0cbh,0a0h,65h
+String_slv_K      DB  0A1h,40h,0A1h,40h,0A1h,40h,0a0h,4ch,0a0h,04dh,0a0h,070h,0a0h,0d7h,0a0h,6ah,0a0h,0cah,0a0h,0cbh,0a0h,65h
+
+;***********************************************************
+;ENGLISH PRINT TABLE
+;***********************************************************
+
+0b9h,0f8h,0c5h,0cdh,0b8h,0aeh,0b0h,0cbh,0bbh,0e7h,0bah,0b8h,0b0h,0edh 

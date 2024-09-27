@@ -1,0 +1,327 @@
+;*****************************************************
+; 印表方塊 壽命百分比計算   壽命百分/10
+;**************************************************
+print_square_caculate_life
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   PERCEN_VAL,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+         MOV   #10,BIN_LSB  ; Load LSBs                                      160
+
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)       
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result POINTER with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. POINTER with VAL2 address MSB
+   
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB        
+        mov.b       BIN_LSB,print_square_conter
+        mov.b      #10,print_square_spec_conter
+        sub.b      print_square_conter,print_square_spec_conter   
+  
+
+        ret
+;ppppppppppppppppppppppppppppppppppppppppppppppp
+;印表方塊  soc  飽電狀態   (adc3-1160)/10
+;ppppppppppppppppppppppppppppppppppppppppppppppppp
+print_square_caculate_soc
+
+          mov       adc3,print_square_conter  
+          
+          cmp         #01,VOLTAGE12VOR24V         
+          jeq         soc_12v
+          sub       #2320,print_square_conter
+          rra       print_square_conter
+          jmp       soc_PERCEN_continue
+          
+soc_12v          
+          sub       #1160,print_square_conter
+          
+soc_PERCEN_continue          
+          jge        soc_PERCEN_less
+          mov         #0,print_square_conter
+                   
+soc_PERCEN_less          
+            CMP       #100,print_square_conter
+            JL        soc_PERCEN
+soc_PERCEN_OVER            MOV       #100,print_square_conter
+soc_PERCEN
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   print_square_conter,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   #10,BIN_LSB  ; Load LSBs                                      160
+
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result POINTER with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. POINTER with VAL2 address MSB
+   
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+        mov.b       BIN_LSB,print_square_conter
+        mov.b      #10,print_square_spec_conter
+        sub.b      print_square_conter,print_square_spec_conter  
+ 
+        ret
+                
+;ppppppppppppppppppppppppppppppppppppppppppppppp
+;印表方塊  發電機    3000rpm  (r3000_now_v-1320)/10
+;ppppppppppppppppppppppppppppppppppppppppppppppppp
+print_square_caculate_generator_3000
+          mov       r3000_now_v,print_square_conter
+          
+          cmp         #01,VOLTAGE12VOR24V         
+          jeq         rpm3000_132v
+          
+          sub       #2640,print_square_conter
+          rra        print_square_conter 
+          jge        generator_PERCEN_less_3000
+          mov         #0,print_square_conter
+          jmp         generator_PERCEN_less_3000
+          
+rpm3000_132v          
+           sub       #1320,print_square_conter
+          jge        generator_PERCEN_less_3000
+          mov         #0,print_square_conter
+          
+          
+generator_PERCEN_less_3000          
+            CMP       #101,print_square_conter                  ;100=10格  1010V所以用101
+            JL        generator_PERCEN_3000
+            
+generator_PERCEN_OVER_3000 
+                  MOV       #101,print_square_conter
+                  
+generator_PERCEN_3000
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   print_square_conter,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   #10,BIN_LSB  ; Load LSBs                                      160
+
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result POINTER with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. POINTER with VAL2 address MSB
+   
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+        mov.b       BIN_LSB,print_square_conter
+        mov.b      #10,print_square_spec_conter
+        sub.b      print_square_conter,print_square_spec_conter  
+ 
+        ret    
+;ppppppppppppppppppppppppppppppppppppppppppppppp
+;印表方塊  發電機    2000rpm  (r2000_now_v-1240)/10
+;ppppppppppppppppppppppppppppppppppppppppppppppppp        
+print_square_caculate_generator_2000
+          mov       r2000_now_v,print_square_conter
+          
+          cmp         #01,VOLTAGE12VOR24V         
+          jeq         rpm2000_124v          
+          
+          sub       #2480,print_square_conter
+          rra       print_square_conter 
+          jge        generator_PERCEN_less_2000
+          mov         #0,print_square_conter
+          jmp         generator_PERCEN_less_2000
+          
+rpm2000_124v         
+          sub       #1240,print_square_conter
+          jge        generator_PERCEN_less_2000
+          mov         #0,print_square_conter          
+                             
+generator_PERCEN_less_2000          
+            CMP       #101,print_square_conter
+            JL        generator_PERCEN_2000
+generator_PERCEN_OVER_2000            MOV       #101,print_square_conter
+generator_PERCEN_2000
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   print_square_conter,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   #10,BIN_LSB  ; Load LSBs                                      160
+
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result POINTER with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. POINTER with VAL2 address MSB
+   
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+        mov.b       BIN_LSB,print_square_conter
+        mov.b      #10,print_square_spec_conter
+        sub.b      print_square_conter,print_square_spec_conter  
+ 
+        ret         
+
+;ppppppppppppppppppppppppppppppppppppppppppppppp
+;印表方塊  啟動   (SLV-910)/10
+;ppppppppppppppppppppppppppppppppppppppppppppppppp        
+print_square_caculate_slv
+
+          mov       SLV,print_square_conter
+        
+          cmp         #01,VOLTAGE12VOR24V
+          jeq         slv_12v
+        
+          sub       #1530,print_square_conter
+          rra        print_square_conter
+          jmp         slv_PERCEN_continue 
+      
+slv_12v                  
+          sub       #910,print_square_conter
+          
+slv_PERCEN_continue
+
+          jge        slv_PERCEN_less
+          mov         #0,print_square_conter
+          
+slv_PERCEN_less        
+            CMP       #101,print_square_conter              ;1010V-910V=100=10格  1010V所以用101
+            
+            JL        slv_PERCEN
+slv_PERCEN_OVER           MOV       #101,print_square_conter      ;1010V-910V=100=10格  1010V所以用101
+slv_PERCEN
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   print_square_conter,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   #10,BIN_LSB  ; Load LSBs                                      160
+
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result POINTER with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. POINTER with VAL2 address MSB
+   
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+        mov.b       BIN_LSB,print_square_conter
+        mov.b      #10,print_square_spec_conter
+        sub.b      print_square_conter,print_square_spec_conter  
+ 
+        ret   
+
+
+;pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp               
+print_square_loop 
+ 
+               cmp.b      #0,print_square_conter
+               jeq        print_square_spec_loop               
+                mov.b      #2,OFFSET
+               mov        #String_square,POINTER
+               call       #print_word_table 
+               
+             dec        print_square_conter                          ; Decrement R15
+             jnz        print_square_loop
+             
+print_square_spec_loop 
+     
+                cmp.b      #0,print_square_spec_conter
+               jeq        print_square_spec_end    
+                mov.b      #2,OFFSET
+               mov        #String_square_spec,POINTER
+               call       #print_word_table 
+               
+             dec        print_square_spec_conter                         ; Decrement R15
+             jnz        print_square_spec_loop    
+print_square_spec_end
+
+            ret
+ 
+                           

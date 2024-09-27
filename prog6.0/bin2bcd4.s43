@@ -1,0 +1,56 @@
+;-----------------------------------------------------------------------------
+BIN2BCD4  ; Subroutine converts binary number R12 -> Packed 4-digit BCD R13
+;           Input:  R12  0000 - 0FFFh, R15 working register
+;           Output: R13  0000 - 4095
+;-----------------------------------------------------------------------------
+            mov.w   #16,R15                 ; Loop Counter
+            clr.w   R13                     ; 0 -> RESULT LSD
+BIN1        rla.w   R12                     ; Binary MSB to carry
+            dadd.w  R13,R13                 ; RESULT x2 LSD
+            dec.w   R15                     ; Through?
+            jnz     BIN1                    ; Not through
+            MOV	  r13,BCD_LSB
+            call    #BCD_SWPB    
+            ret                             ;
+                                            ;
+;------------------------------------------------------------------------------
+
+;****************************************
+;BCD_SWPB
+;****************************************
+BCD_SWPB
+                ;push            BCD_MID
+                ;push            BCD_LSB
+                mov.w           BCD_MID,bcd5
+               and.w           #0fh,bcd5
+                swpb            BCD_MID
+                mov.w           BCD_MID,bcd7
+                and.w           #0fh,bcd7
+                RRC             BCD_MID
+                RRC             BCD_MID
+                RRC             BCD_MID
+                RRC             BCD_MID
+                mov.w           BCD_MID,bcd8
+                and.w           #0fh,bcd8
+                swpb            BCD_MID
+                mov.w           BCD_MID,bcd6
+                and.w           #0fh,bcd6
+
+
+                mov.w           BCD_LSB,bcd1
+                and.w           #0fh,bcd1
+                swpb            BCD_LSB
+                mov.w           BCD_LSB,bcd3
+                and.w           #0fh,bcd3
+                RRC             BCD_LSB
+                RRC             BCD_LSB
+                RRC             BCD_LSB
+                RRC             BCD_LSB
+                mov.w           BCD_LSB,bcd4
+                and.w           #0fh,bcd4
+                swpb            BCD_LSB
+                mov.w           BCD_LSB,bcd2
+                and.w           #0fh,bcd2
+                ;pop             BCD_LSB
+                ;pop             BCD_MID
+                RET

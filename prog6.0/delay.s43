@@ -1,0 +1,47 @@
+
+;****************************************
+;LCM REG   
+;****************************************
+;   DELAY 1s  10000*100us=1s
+;****************************************
+delay_1s      mov.w   #10000,delaytemp0            ; 
+              jmp     delay_unit
+            
+;****************************************
+;XTAL       DELAY 500ms
+;****************************************
+delay_500ms      mov.w   #5000,delaytemp0          ; Delay to R15
+                 jmp     delay_unit
+                 
+;****************************************
+;XTAL 32768   DELAY 55.5ms
+;****************************************
+delay_50ms      mov.w   #500,delaytemp0             ; Delay to R15
+                jmp     delay_unit                               
+            
+;****************************************
+;XTAL 32768   DELAY 3.43ms
+;****************************************
+delay_3ms      mov.w   #30,delaytemp0              ; Delay to R15
+               jmp     delay_unit
+;****************************************
+;XTAL 32768   DELAY 100us
+;****************************************
+;delay_100us      mov.w   #2,delaytemp0              ; Delay to R15
+               ;jmp     delay_unit                                     
+;****************************************
+; XTAL 8MHZ  DELAY 0.1082 ms  二個指令xor 與 jmp =59.14khz =8.454us, 
+; mov.w #010,delaytemp0=1.027ms mov.w #0100,delaytemp0=10.024ms mov.w  #010000,delaytemp0=1.0024s 
+;****************************************
+delay_unit 
+d_1
+             mov.w   #10,delaytemp1             ; Delay to R15#201
+d_2          dec.w    delaytemp1                 ; Decrement R15
+             jnz     d_2
+             dec.w    delaytemp0 
+               jnz     d_1
+             ret
+             
+
+
+

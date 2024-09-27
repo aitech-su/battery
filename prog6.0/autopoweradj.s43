@@ -1,0 +1,158 @@
+ 
+;***********************************
+;  adc3 計算 1244/adc3_VAL_=以後要乘的倍率
+;***********************
+auto_power_adc3_MR_rate
+
+           MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ; 
+        MOV   adc3,BIN_LSB  ; Load LSBs
+
+;           CALL	#FLT_SAV     ; Save registers
+           SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp2msb
+        POP  fp2mid
+          POP  fp2lsb
+        
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#g,RPRES  ; ;auto_power校正 adc3 power 電壓 1277/adc3
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+       ;CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+        POP	  auto_adc3_H        ; BCD number MSDs and sign
+	POP	  auto_adc3_M       ; BCD digits MSD-4 to LSD+4
+	POP	  auto_adc3_L
+               
+               
+;***********************************
+;  MR 計算 466m歐/RES_VAL_=以後要乘的倍率
+;***********************                 
+
+           MOV   RES_VAL_H,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   RES_VAL_M,BIN_MID  ;          
+        MOV   RES_VAL_L,BIN_LSB  ; Load LSBs 
+
+;           CALL	#FLT_SAV     ; Save registers
+           SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp2msb
+        POP  fp2mid
+          POP  fp2lsb
+        
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#h,RPRES     ; power mr 的值
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+      ;CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+        POP	  auto_mr_H        ; BCD number MSDs and sign
+	POP	  auto_mr_M       ; BCD digits MSD-4 to LSD+4
+	POP	  auto_mr_L         
+         
+;----------------------------------------------------------------    
+;寫電壓修正率浮點數據到 段A (01080H)  FLASH
+;電阻MR修正率浮點數據到 段A (01080H)
+;語言數據從段B(01000H)寫回段A(01080H)
+;-------------------------------------------                  
+           call      #CopyA2B                     ;Copy Seg A to Seg B, R5 used as working reg.
+           call      #Write_SegA                  ;&01080h 假erase 啟動段A,假erase &01000h 啟動段B殺 , 先殺才能寫
+
+           ;mov.w     #FWKEY+WRT,&FCTL1            ;Write bit = 1 開始寫,因為放在 call  #Write_SegA 之後所以可以取消省空間,共用
+            mov     auto_adc3_H,&VOLTAGE_RATE_MSB   
+            mov     auto_adc3_M,&VOLTAGE_RATE_MID 
+            mov     auto_adc3_L,&VOLTAGE_RATE_LSB
+            mov       auto_mr_H,&MR_RATE_MSB   
+            mov       auto_mr_M,&MR_RATE_MID 
+            mov       auto_mr_L,&MR_RATE_LSB 
+            
+            mov.b     &LANGUAGE_SEL_INFO_back,&LANGUAGE_SEL_INFO      ;語言數據從段B(01000H)寫回段A(01080H)
+                       
+            mov.w   #FWKEY+LOCK,&FCTL3      ; Lock = 1,KEY_VAL1
+            EINT                            ;call  #CopyA2B 有 DINT 所以要EINT   
+            ret
+  
+;*****************************************************
+;  auto_power_votage ad3 乘修正基數 是info flash
+;-------------------------------------
+;   input  mov  #01244,adc3
+;   call #auto_power_votage_rate
+;   output  pop adc3
+;************************************************** 
+auto_power_votage_rate
+           
+          MOV     &VOLTAGE_RATE_MSB,fp1msb
+         MOV     &VOLTAGE_RATE_MID,fp1mid
+        MOV     &VOLTAGE_RATE_LSB,fp1lsb
+          
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;          
+        MOV    adc3,BIN_LSB  ; Load LSBs
+;           CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+          CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp2msb
+          POP  fp2mid
+          POP  fp2lsb                  
+
+         SUB	#(ML/8)+1,SP ; Allocate stack for result
+         MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+         MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB 
+         CALL	#FLT_MUL    ; Compute and load pointers with res.address
+
+	 CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	 JN	  CNVERR       ; FP number too big for BCD buffer
+	 POP	  BIN_MSB       ; BCD number MSDs and sign
+	 POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	 POP	  adc3      ; BCD digits LSD+3 to LSD
+
+           ret
+           
+           
+;*****************************************************
+;  auto_power_ mr 乘修正基數 是info flash
+;************************************************** 	           
+auto_power_mr_rate
+
+          MOV     &MR_RATE_MSB,fp1msb
+         MOV     &MR_RATE_MID,fp1mid
+        MOV     &MR_RATE_LSB,fp1lsb
+          
+          MOV   RES_VAL_H,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   RES_VAL_M,BIN_MID  ;          
+        MOV    RES_VAL_L,BIN_LSB  ; Load LSBs
+;           CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+          CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp2msb
+          POP  fp2mid
+          POP  fp2lsb
+                   
+
+         SUB	#(ML/8)+1,SP ; Allocate stack for result
+         MOV	#fp2msb,RPRES  ; Load result pointer with VAL1 address MSB
+         MOV	#fp1msb,RPARG  ; Load argum. pointer with VAL2 address MSB 
+         CALL	#FLT_MUL    ; Compute and load pointers with res.address
+;	....	  ........     ; Continue until final result is calculated
+	 CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	 JN	  CNVERR       ; FP number too big for BCD buffer
+	 POP	  BIN_MSB       ; BCD number MSDs and sign
+	 POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	 POP	  BIN_LSB     ; BCD digits LSD+3 to LSD
+
+        mov       BIN_MSB,RES_VAL_H     ;必須先用BIN格式儲存，其他地方要計算用
+        mov       BIN_MID,RES_VAL_M 
+        mov       BIN_LSB,RES_VAL_L 
+
+	SUB	#(ML/8)+1,SP ; Allocate stack for result
+	CALL  #CNV_BIN        ; Call conversion routine
+	
+       CALL	  #CNV_FP_BCD  ; Convert final FP result to BCD
+       POP	  bcdmsd       ; BCD number MSDs and sign
+	POP	  bcdmid       ; BCD digits MSD-4 to LSD+4
+	POP	  bcdlsd       ; BCD digits LSD+3 to LSD
+
+        ret

@@ -1,0 +1,113 @@
+;******************************************************************
+;
+;**********************************************
+slv
+          MOV       #00,KEY_VAL
+          ;call      #detect_clips
+          
+          call     #LCM_INITIAL
+          MOV.B     #3,ITEM
+
+          CALL     #disslv
+          MOV       #4095,SLV
+
+            call      #adc_3_avg
+            mov       adc_,adc3                ;Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+              
+            mov       adc3,slv_now_v
+            MOV       adc3,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_OCV
+            CALL     #DIS_9_6V
+
+slv_L1
+;              mov       #1000,now_conter
+              ;call      #delay6
+;              call      #adc_3_avg
+;testIFG_25   bit     #BIT0,&ADC12IFG         ;Conversion done?
+ ;           jnz      testIFG_25              ;No, test again
+;            mov     adc_,now_v                ;Move result
+;            MOV       now_v,R12
+;            call      #BIN2BCD4
+;            MOV	      r13,BCD_LSB
+;            CALL      #BCD_SWPB
+;            call      #DIS_gen_val_now
+
+slv_L2
+;             dec       now_conter
+;             jz        slv_L1
+
+             bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+             CMP.B     #ENTER,KEY_VAL
+             JEQ       print_slv_start
+             CMP.B     #ESC,KEY_VAL
+             JEQ       SELECT_BATT_GENERATOR_rep4
+
+             call      #adc_3_avg
+            mov     adc_,adc3                ;Move result
+
+              IF AUTO_POWER_ADJ =1
+              call     #auto_power_votage_rate    ;  auto_power_votage ad3 乘修正基數
+              ELSE
+              ENDIF
+              
+            ;call      #delay_1ms
+            CMP      SLV,adc3
+            JGE      slv_L2
+            
+            mov     adc3,SLV                 ;Move result
+            MOV       SLV,R12
+            call      #BIN2BCD4
+            ;MOV	      r13,BCD_LSB
+            ;CALL      #BCD_SWPB
+            call      #DIS_SLV
+
+            JMP     slv_L2
+ 
+print_slv_start
+            mov.b         #00h,KEY_VAL
+            MOV.B     #00,nopaper_val
+            MOV.B     #00,nopaper_val_1
+            call          #print
+            mov.b         #00h,KEY_VAL
+               CMP.B     #00,nopaper_val_1
+               JEQ         slv_print_end
+slv_print_re_display_slv
+            call     #LCM_INITIAL
+            call     #re_display_slv
+            MOV.B     #00,nopaper_val
+slv_print_end
+             bis.b     #0f0h,&P1IE          ;致能p1.7~p1.4 中斷
+             CMP.B     #ENTER,KEY_VAL
+             JEQ       print_slv_start
+             CMP.B     #ESC,KEY_VAL
+             JEQ       SELECT_BATT_GENERATOR_rep4
+             
+            CMP.B             #19,&RXBUF0
+            JNE               slv_print_end                          
+            ; bit.b           #nopaper,P5IN
+              ;jnz            slv_print_end
+              CMP.B     #01,nopaper_val_1
+              JEQ        slv_print_end
+              call           #disnopaper
+              
+            CMP.B             #19,&RXBUF0
+            JNE               slv_print_re_display_slv               
+             ;bit.b           #nopaper,P5IN
+              ;jnz            slv_print_re_display_slv
+             JMP       slv_print_end
+             
+;***********************************
+;  jeq 無法跳躍 +-1024 中繼程式段
+;***********************************       
+SELECT_BATT_GENERATOR_rep4
+
+          mov       #SELECT_BATT_GENERATOR,pc             
+             

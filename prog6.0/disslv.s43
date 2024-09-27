@@ -1,0 +1,902 @@
+;***********************************************************************************		
+;打啟動馬達
+;***********************************************************************************
+disslv
+              mov.b		#1,WORD_BLACK	  	        ;設定1代表black	
+              MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+               CMP.B       #01,ENGLISH_TAIWAN
+               JNE          disslv_T
+;------------------------------------------------------
+;          Start the motor
+;-----------------------------------------------------	
+disslv_E
+     		;mov.b		#1,WORD_BLACK	  	        ;設定1代表black		   		
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#64,WORD_WIDE			;輸入字的寬度
+		MOV		#N_18,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                
+;     		mov.b		#1,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#64,WORD_WIDE			;輸入字的寬度
+		MOV		#N_18,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2                
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_S,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+		
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#24,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#W_t,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                				
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#28,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#7,WORD_WIDE			;輸入字的寬度
+		MOV		#W_a,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+		
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#35,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#5,WORD_WIDE			;輸入字的寬度
+		MOV		#W_r,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+               	
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#40,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#W_t,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+		
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#52,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#W_t,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+
+;                mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#56,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_h,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	                
+                
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#7,WORD_WIDE			;輸入字的寬度
+		MOV		#W_e,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#12,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#12,WORD_WIDE			;輸入字的寬度
+		MOV		#W_m,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+		
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#24,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_o,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+		
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#W_t,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+
+;                mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#36,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_o,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+
+;                mov.b		#0,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#44,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#5,WORD_WIDE			;輸入字的寬度
+		MOV		#W_r,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+                RET               
+;***********************************************************************************		
+;打啟動馬達
+;***********************************************************************************
+disslv_T                
+               CMP.B       #02,ENGLISH_TAIWAN
+               JNE          disslv_J
+		
+		;mov.b		#1,WORD_BLACK	  	        ;設定1代表black				
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_96,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_114,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#1,WORD_BLACK	  	        ;設定1代表black		
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_84,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_122,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+  	        ;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_3,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2                
+							
+		RET
+ ;***********************************************************************************		
+;打啟動馬達
+;***********************************************************************************
+disslv_J  
+               CMP.B       #03,ENGLISH_TAIWAN
+               JNE          disslv_K
+				
+		;mov.b		#1,WORD_BLACK	  	        ;設定1代表black				
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_193,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度-+---
+		MOV		#W_143,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#1,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_194,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_143,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_29,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_84,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2   
+                							
+		RET  
+ ;***********************************************************************************		
+;打啟動馬達
+;***********************************************************************************
+disslv_K 
+               ;CMP.B       #04,ENGLISH_TAIWAN
+               ;JNE          disslv_C
+				
+		;mov.b		#1,WORD_BLACK	  	        ;設定1代表black				
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#30,WORD_WIDE			;輸入字的寬度
+		MOV		#K_19,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                
+;		mov.b		#1,WORD_BLACK	  	        ;設定1代表black				
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#30,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#20,WORD_WIDE			;輸入字的寬度
+		MOV		#N_18,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1                
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#50,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#14,WORD_WIDE			;輸入字的寬度-+---
+		MOV		#K_24,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#1,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#0,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#64,WORD_WIDE			;輸入字的寬度
+		MOV		#K_22,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2  
+                							
+		RET 
+                
+
+                
+;***************************************************************
+;靜態電壓
+;********************************************************************
+DIS_OCV	
+                  MOV.b		#0,WORD_BLACK	  	        ;設定1代表black
+                  MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+                  CMP.B       #01,ENGLISH_TAIWAN
+                  JNE          DIS_OCV_T
+;***************************************************************
+;靜態電壓  Normal V
+;********************************************************************
+DIS_OCV_E	
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_N,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+;		MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#11,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_o,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#19,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#5,WORD_WIDE			;輸入字的寬度
+		MOV		#W_r,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#24,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#12,WORD_WIDE			;輸入字的寬度
+		MOV		#W_m,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#36,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#7,WORD_WIDE			;輸入字的寬度
+		MOV		#W_a,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#43,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#W_l,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1 
+                
+;-----------------------------------------------------------------------	
+DIS_OCV_NUMBER_COM
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black						
+        	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#17,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		mov.b           bcd4,LCMTEMP
+		call            #SCAN_0_9			        ;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#25,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		mov.b           bcd3,LCMTEMP
+		call            #SCAN_0_9			        ;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#33,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#DOT_BYE,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#37,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		mov.b           bcd2,LCMTEMP
+		call            #SCAN_0_9			        ;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#45,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#08,WORD_WIDE			;輸入字的寬度
+	        mov.b           bcd1,LCMTEMP
+		call            #SCAN_0_9		                ;取出字的table
+		CALL		#WRITE_LCM_CS2
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+
+		ret	                  
+;***************************************************************
+;靜態電壓
+;********************************************************************
+DIS_OCV_T	
+                  CMP.B       #02,ENGLISH_TAIWAN
+                  JNE         DIS_OCV_J
+                  
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_128,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_12,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_6,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+                ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_7,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;-----------------------------------------------------------------------
+                CALL            #DIS_OCV_NUMBER_COM
+		ret	
+                
+;***************************************************************
+;靜態電壓
+;********************************************************************
+DIS_OCV_J	
+                  CMP.B       #03,ENGLISH_TAIWAN
+                  JNE         DIS_OCV_K
+                  
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_198,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_199,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_200,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                         
+;-----------------------------------------------------------------------	
+               CALL            #DIS_OCV_NUMBER_COM
+		ret	
+;***************************************************************
+;靜態電壓
+;********************************************************************
+DIS_OCV_K
+                  ;CMP.B       #04,ENGLISH_TAIWAN
+                  ;JNE         DIS_OCV_C
+
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#2,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#64,WORD_WIDE			;輸入字的寬度
+		MOV		#K_23,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		                       
+;-----------------------------------------------------------------------	
+               CALL            #DIS_OCV_NUMBER_COM
+		ret	
+
+;**********************************************************************
+;啟動電壓
+;*******************************************************************
+DIS_SLV	
+                    MOV.b		#0,WORD_BLACK	  	        ;設定1代表black	
+                    MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+                   CMP.B       #01,ENGLISH_TAIWAN
+                   JNE          DIS_SLV_T                     
+;**********************************************************************
+;啟動電壓   Crank V
+;*******************************************************************
+DIS_SLV_E	
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#10,WORD_WIDE			;輸入字的寬度
+		MOV		#W_C,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+;		MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#10,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#5,WORD_WIDE			;輸入字的寬度
+		MOV		#W_r,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#15,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#7,WORD_WIDE			;輸入字的寬度
+		MOV		#W_a,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#22,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_n,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#30,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_k,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	 
+                
+;---------------------------------------------------------------------------------
+DIS_SLV_NUMBER_COM
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black						
+        	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#17,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		mov.b           bcd4,LCMTEMP
+		call            #SCAN_0_9			        ;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#25,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		mov.b           bcd3,LCMTEMP
+		call            #SCAN_0_9			        ;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#33,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#DOT_BYE,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#37,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		mov.b           bcd2,LCMTEMP
+		call            #SCAN_0_9			        ;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#45,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#08,WORD_WIDE			;輸入字的寬度
+	        mov.b           bcd1,LCMTEMP
+		call            #SCAN_0_9		                ;取出字的table
+		CALL		#WRITE_LCM_CS2
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	                              
+                
+                ret                     
+;**********************************************************************
+;啟動電壓
+;*******************************************************************
+DIS_SLV_T	
+                   CMP.B       #02,ENGLISH_TAIWAN
+                   JNE          DIS_SLV_J
+                   
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_114,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_84,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_6,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+                ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_7,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                
+;---------------------------------------------------------------------------------
+                CALL            #DIS_SLV_NUMBER_COM                
+		              	
+		ret
+                
+;**********************************************************************
+;啟動電壓
+;*******************************************************************
+DIS_SLV_J	
+                   CMP.B       #03,ENGLISH_TAIWAN
+                   JNE          DIS_SLV_K
+                   
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_141,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_142,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_143,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+                ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_141,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                
+;---------------------------------------------------------------------------------
+                CALL            #DIS_SLV_NUMBER_COM                		              	
+		ret              
+;**********************************************************************
+;啟動電壓
+;*******************************************************************
+DIS_SLV_K	
+                   ;CMP.B       #04,ENGLISH_TAIWAN
+                   ;JNE          DIS_SLV_C
+
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#4,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#64,WORD_WIDE			;輸入字的寬度
+		MOV		#K_50,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		               
+;---------------------------------------------------------------------------------
+                CALL            #DIS_SLV_NUMBER_COM                		              	
+		ret 
+                                              
+
+				
+;***************************************************************
+;啟動電壓>9.2V   
+;********************************************************************
+DIS_9_6V
+                  MOV.b		#0,WORD_BLACK	  	        ;設定1代表black
+                  MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+                 CMP.B       #01,ENGLISH_TAIWAN
+                  JNE          DIS_9_6V_T
+;***************************************************************
+;啟動電壓>9.6V     Crank V >9.6V
+;********************************************************************
+DIS_9_6V_E	
+
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#10,WORD_WIDE			;輸入字的寬度
+		MOV		#W_C,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+;		MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#10,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#5,WORD_WIDE			;輸入字的寬度
+		MOV		#W_r,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#15,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#7,WORD_WIDE			;輸入字的寬度
+		MOV		#W_a,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#22,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_n,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#30,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+		MOV		#W_k,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+                               
+;--------------------------------------------------------------------------------
+DIS_9_6V_NUMBER_COM
+                 MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)             
+                 CMP           #1,VOLTAGE12VOR24V
+                 JNE           DIS_9_6V_NUMBER_COM_24V  
+
+DIS_9_6V_NUMBER_COM_12V
+
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black						
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#12,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+	        MOV		#N_26,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#33,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+                MOV		#N_9,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#41,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#DOT_BYE,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#45,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+                MOV		#N_2,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+
+		ret
+                
+DIS_9_6V_NUMBER_COM_24V
+
+;		mov.b		#0,WORD_BLACK	  	        ;設定1代表black						
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#12,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+	        MOV		#N_26,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+                
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#25,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+                MOV		#N_1,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2                
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#33,Y_ADDRESS			;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+                MOV		#N_5,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#41,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#4,WORD_WIDE			;輸入字的寬度
+		MOV		#DOT_BYE,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+
+;                MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+        	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#45,Y_ADDRESS		        ;輸入address上下(0-63)
+		MOV.b		#8,WORD_WIDE			;輸入字的寬度
+                MOV		#N_5,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2
+		
+;	        MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#53,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#11,WORD_WIDE			;輸入字的寬度
+		MOV		#W_V,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS2	
+
+		ret               
+;***************************************************************
+;啟動電壓>9.2V   
+;********************************************************************
+DIS_9_6V_T
+                 CMP.B       #02,ENGLISH_TAIWAN
+                  JNE          DIS_9_6V_J
+                  
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_114,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_84,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_6,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+                ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_7,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+ ;--------------------------------------------------------------------------------
+                CALL            #DIS_9_6V_NUMBER_COM               
+		ret
+;***************************************************************
+;啟動電壓>9.2V   
+;********************************************************************
+DIS_9_6V_J
+                 CMP.B       #03,ENGLISH_TAIWAN
+                  JNE          DIS_9_6V_K
+                  
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_141,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#16,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_142,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		
+		
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#32,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_143,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+                ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#48,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#16,WORD_WIDE			;輸入字的寬度
+		MOV		#W_141,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1	
+                
+ ;--------------------------------------------------------------------------------
+                CALL            #DIS_9_6V_NUMBER_COM               
+		ret  
+;***************************************************************
+;啟動電壓>9.2V   
+;********************************************************************
+DIS_9_6V_K
+                ;CMP.B       #04,ENGLISH_TAIWAN
+                  ;JNE          DIS_9_6V_C
+
+	        ;MOV.b		#0,WORD_BLACK	  	        ;設定1代表black		
+         	;MOV.b		#6,Y_PAGE			;輸入pageg上下(0-7)
+		MOV.b		#0,Y_ADDRESS		;輸入address上下(0-63)
+		MOV.b		#64,WORD_WIDE			;輸入字的寬度
+		MOV		#K_50,TABLE			;取出字的table
+		CALL		#WRITE_LCM_CS1
+		               
+ ;--------------------------------------------------------------------------------
+                CALL            #DIS_9_6V_NUMBER_COM               
+		ret   
+
+
+                
+                
+           

@@ -1,0 +1,855 @@
+;===============================================================================
+;  MSP430 Floating Point Package   Version 4.0 IAR
+;
+;  Basic Arithmetic Operations
+;  Texas Instruments Deutschland               IAR Version
+;  Date:    January, 13 1997		       July, 21, 2003
+;  Version: 4.13  21.7.03 LB
+;	  3.05	Sign generation for MPY/DIV in INITxx
+;	  3.06	Completion unified
+;	  3.07	Special treatment for smallest neg. number removed
+;	  3.08	Error corrected (argument on TOS, least significant bit)
+;	  3.09	Common normalize part for all 4 Basic Arithm. Operations
+;	  3.10	FLT_CMP error corrected LB
+;	  4.01	Hardware Multiplier included, comment enhancement
+;	  4.12	FLT_CMP return: RPARG = RPRES = SP  (normal return)
+;	  4.13	Macros MAC and MPY changed to MACF and MPYF
+;
+;  Adapted to standalone FPP: 5/95  Franz Graf FRGR
+;  Version: 1.01  Sep,28 1995 LB JC -> JHS where better descriptive
+;  Version: 2.0   Nov,2  1995 by Stephan Bork (single file for both versions)
+;  Version: 3.0   Dec,31 1995 by Lutz Bierl (shorter code and run time)
+;  Version: 4.0   Dec,6  1996 by Lutz Bierl (inclusion of HW-Multiplier)
+;==============================================================================
+;  This Floating Point Package can handle two floating point number formats:
+;  - .FLOAT  format (24 bit mantissa, 32 bit numbers)
+;  - .DOUBLE format (40 bit mantissa, 48 bit numbers)
+;  To select the required format the variable DOUBLE is used:
+;  For 32 bit numbers set DOUBLE to 0   (DOUBLE .set 0)
+;  For 48 bit numbers set DOUBLE to 1   (DOUBLE .set 1)
+;
+;  The definition of the registers is made in FPPDEF4.ASM
+;  The definition of the variables is made in the customer's software.
+;  This must be done before the FPPDEF4.ASM file is inserted.
+;
+; DOUBLE          EQU     1       ; 1: .DOUBLE      0: .FLOAT
+; SW_RND          EQU     0       ; 1: Conversion rounds result
+; SW_UFLOW        EQU     1       ; 1: Underflow is error   0: no error
+; HW_MPY          EQU     1       ; 1: Hardware multiplier is used
+;
+;  NOTE: the variables DOUBLE, SW_RND, SW_UFLOW, and HW_MPY must be defined
+;	 within the user's software. They are NOT defined inside of the FPP.
+;
+;  The Floating Point Package V4.0 supports the following operations:
+;
+;  FLT_ADD         Addition          FLT_SAV    Save used registers
+;  FLT_SUB         Subtraction       FLT_REC    Restore used registers
+;  FLT_MUL	   Multiplication    FLT_END	Common termination
+;  FLT_DIV         Division
+;  FLT_CMP         Comparison
+;
+;  Common Conventions:
+;  -------------------
+; - The arguments handed over from the main program to the floating point
+;   package by pointers are not affected during operation (except if one
+;   of the arguments is the last result on TOS which is overwritten with
+;   the new result).
+; - The special implementation of the FPP (nearly no subroutines, jumps
+;   instead) results from the contradictionary claims to have a ROM-space
+;   and speed optimized software package.
+; - HELP.7 means bit 7 of the word or byte HELP
+; - If an error occurs during an operation an errorcode is written to the
+;   statusregister (SR). The results are shown for the .DOUBLE format
+; - HELP also contains the error code after the return
+;
+;  +--------------------+-------------------+------------------------+
+;  | Error		|    Statusregister |	 Result 	     |
+;  +--------------------+-------------------+------------------------+
+;  | No error		|    N=0, C=x, Z=x  |	 xxxx xxxx xxxx      |
+;  | Overflow positive	|    N=1, C=1, Z=1  |	 FF7F FFFF FFFF      |
+;  | Overflow negative	|    N=1, C=1, Z=0  |	 FFFF FFFF FFFF      |
+;  | Underflow		|    N=1, C=0, Z=0  |	 0000 0000 0000      |
+;  | Division by zero	|    N=1, C=0, Z=1  |	 FF7F FFFF FFFF or   |
+;  |			|		    |	 FFFF FFFF FFFF      |
+;  +--------------------+-------------------+------------------------+
+;
+;  The '.DOUBLE' format
+;  --------------------
+;  The '.DOUBLE' format represents a floating point number with 48 bits.
+;  The 40 least significant bits (LSBs) represent the mantissa and the
+;  8 most significant bits (MSBs) represent the exponent.
+;
+;  MSB.47         .39                              LSB.0
+;  |-----------------------------------------------------|
+;  | e.7 ... e.0 | sign | m.38 ..................... m.0 |
+;  |--------------------.--------------------------------|
+;   exponent E			mantissa M
+;
+;  Definitions: E = exponent of the floating point number
+;	      M = mantissa of the floating point number (2 > M >= 1)
+;	   sign = sign of the floating point number	(0 = pos  1 = neg)
+;	      m = a bit of the mantissa (valency considered)
+;	      e = a bit of the exponent (valency considered)
+;      .0 to .38  bits corresponding to their valency
+;
+;  NOTE: this is NOT the usual two's complement notation!
+;	 For more information see "MSP430 Family Floating Point Package" or
+;	 the "Metering Application Report".
+;
+;  Zero is represented by 40 zero bits.
+;--------------------------------------------------------------------------
+;
+;  The '.FLOAT' format
+;  --------------------
+;  The '.FLOAT' format represents a floating point number with 32 bits.
+;  The 24 least significant bits (LSBs) represent the mantissa and the
+;  8 most significant bits (MSBs) represent the exponent.
+;
+;  MSB.31         .23                              LSB.0
+;  |-----------------------------------------------------|
+;  | e.7 ... e.0 | sign | m.22 ..................... m.0 |
+;  |--------------------.--------------------------------|
+;   exponent E			mantissa M
+;
+;  Zero is represented by 32 zero bits.
+;======================================================================
+;  Conventions for the 4 basic arithmetical operations:
+;
+;  - The arguments are not affected by the operation (except if at TOS)
+;  - The pointers RPARG and RPRES always point to the MSWord. (exp. + MSBs)
+;  - After the operation both pointers and the stack pointer (SP) point
+;    to the MSword of the result to ease the following calls.
+;
+;  Calling conventions (shown for .DOUBLE format): VAL1 x VAL2 - VAL3
+;
+;     CALL	#FLT_SAV     ; Save registers
+;     SUB	#(ML/8)+1,SP ; Allocate stack for result
+;     MOV	#VAL1,RPRES  ; Load result pointer with VAL1 address MSB
+;     MOV	#VAL2,RPARG  ; Load argum. pointer with VAL2 address MSB
+;     CALL	#FLT_MUL     ; Compute and load pointers with res.address
+;     MOV	#VAL3,RPARG  ; Load argum. pointer with VAL3 address MSB
+;     CALL	#FLT_SUB     ; Compute and load pointers with res.address
+;     ...	....	     ; Continue with calculations
+;     POP	RESULTMSB    ; Free stack from result: MSBs
+;     POP	RESULTMID    ; Store result's middle part
+;     POP	RESULTLSB    ; Store result's LSB part
+;     CALL	#FLT_REC     ; Restore used registers
+;     ...	....	     ; Continue with main program
+;
+; VAL1  DW      08B3Bh,0BB33h,03333h ; 3003.70 Constants for calculations
+; VAL2  DW      08345h,0851Eh,0B852h ; 123.45E-1
+; VAL3  DW      0895Bh,0228Fh,05C29h ; 876.54
+;
+;  BEGIN OF THE FLOATING POINT PACKAGE
+;
+; Floating Point Save and Recall Subroutines
+
+     IF DOUBLE=1
+FLT_SAV PUSH	HELP		; Save used registers
+	PUSH	ARG1_MSB	;
+	PUSH	ARG1_MID	;
+	PUSH	ARG1_LSB	;
+	PUSH	ARG2_MSB	;
+	PUSH	ARG2_MID	;
+	PUSH	ARG2_LSB	;
+	PUSH	RESULT_MSB	;
+	PUSH	RESULT_MID	;
+	PUSH	RESULT_LSB	;
+	PUSH	22(SP)		; Copy return address to TOS
+        MOV     COUNTER,22(SP)  ; Overwrite previous return address
+	RET			;
+     ELSE
+FLT_SAV PUSH	HELP		; Save used registers
+	PUSH	ARG1_MSB	;
+	PUSH	ARG1_LSB	;
+	PUSH	ARG2_MSB	;
+	PUSH	ARG2_LSB	;
+	PUSH	RESULT_MSB	;
+	PUSH	RESULT_LSB	;
+	PUSH	16(SP)		; Copy return address to TOS
+	MOV	COUNTER,16(SP)	; Overwrite previous return address
+	RET			;
+     ENDIF
+
+     IF DOUBLE=1
+FLT_REC MOV	22(SP),COUNTER	; Restore saved registers
+	POP	20(SP)		; Move return address to end
+	POP	RESULT_LSB	;
+	POP	RESULT_MID	;
+	POP	RESULT_MSB	;
+	POP	ARG2_LSB	;
+	POP	ARG2_MID	;
+	POP	ARG2_MSB	;
+	POP	ARG1_LSB	;
+	POP	ARG1_MID	;
+	POP	ARG1_MSB	;
+	POP	HELP		;
+	RET			;
+     ELSE
+FLT_REC MOV	16(SP),COUNTER	; Restore saved registers
+	POP	14(SP)		; Move return address to end
+	POP	RESULT_LSB	;
+	POP	RESULT_MSB	;
+	POP	ARG2_LSB	;
+	POP	ARG2_MSB	;
+	POP	ARG1_LSB	;
+	POP	ARG1_MSB	;
+	POP	HELP		;
+	RET			;
+     ENDIF
+
+; Floating Point Addition	Result on TOS = @RPRES + @RPARG
+
+FLT_ADD CLR	HELP		; Clear Subtraction Bit (HELP.7)
+	JMP	FSA		;
+
+; Floating Point Subtraction    Result on TOS = @RPRES - @RPARG
+
+FLT_SUB MOV	#80h,HELP	; Set Subtraction Bit (HELP.7)
+
+; It is supposed that |argument 1| > |argument 2| !
+; If this is not true the arguments are exchanged and the sign is
+; modified so that the result is correct.
+; The sign of the |greater argument| (argument 1) is the result's sign.
+; Initialize the registers with the values of the input arguments.
+; Test the arguments for zero. The result of the test is written to COUNTER.
+;
+FSA	CALL	#INIAS			; Initialization for ADD/SUB
+	MOV	ARG1_LSB,RESULT_LSB	; Argument 1 to RESULT
+     IF DOUBLE=1
+	MOV	ARG1_MID,RESULT_MID
+     ENDIF
+	MOV	ARG1_MSB,RESULT_MSB
+	AND	#80h,ARG1_MSB		; Sign of ARG1 to
+	MOV.B	ARG1_MSB,2(SP)		; Result location (MSBs) on stack
+;
+; Special treatment if one of the arguments is 0. Info in COUNTER
+;
+	BIT	#2,COUNTER		; If ARG2 = 0:
+	JNZ	EXIT			; Result is ARG1 (in RESULT)
+        BIT     #1,COUNTER              ; ARG1 = 0?
+	JZ	FA12			; Both arguments are non-zero
+	MOV	ARG2_LSB,RESULT_LSB	; ARG1 = 0:
+     IF DOUBLE=1
+	MOV	ARG2_MID,RESULT_MID	; Result is neg. ARG2
+     ENDIF
+	MOV	ARG2_MSB,RESULT_MSB	; Depends on operation:
+	XOR	HELP,RESULT_MSB 	; change sign if subtraction
+	JMP	EXIT			; Result is ARG1 (in RESULT)
+;
+; Create the operation bit (HELP.7) with the following operation:
+; (subtraction bit) .XOR. (sign ARG1) .XOR. (sign ARG2)
+; Operation bit = 0:   addition is needed
+; Operation bit = 1:   subtraction is needed
+
+FA12	XOR	RESULT_MSB,HELP       ;
+	XOR	ARG2_MSB,HELP	      ;
+	BIC	#0FF7Fh,HELP	      ; Leave only operation bit
+;
+	BIS	#80h,RESULT_MSB       ; Set hidden bits to one
+	BIS	#80h,ARG2_MSB	      ;
+;
+; The absolute greater argument is written to RESULT and the absolute
+; smaller argument to ARG2. The sign of the result is corrected
+;
+	CMP	ARG2_MSB,RESULT_MSB   ; Compare the MSBs
+	JNE	FA1
+     IF DOUBLE=1
+	CMP	ARG2_MID,RESULT_MID   ; Compare the MIDs
+	JNE	FA1
+     ENDIF
+	CMP	ARG2_LSB,RESULT_LSB   ; Compare the LSBs
+	JEQ	FA2		      ; |ARG1| = |ARG2|
+FA1	JHS	FA3		      ; |ARG1| > |ARG2|
+
+; |argument 1| < |ARG2|
+; The greater argument2 is written to RESULT.
+; The smaller argument1 is written to ARG2.
+; If the operation is subtraction (operation bit = 1, HELP.7)
+; the sign of the result is the inverted sign of argument1.
+
+	MOV	ARG2_MSB,ARG1_MSB     ; Exchange MSBs
+	MOV	RESULT_MSB,ARG2_MSB
+	MOV	ARG1_MSB,RESULT_MSB
+     IF DOUBLE=1
+	MOV	ARG2_MID,ARG1_MID     ; Exchange MIDs
+	MOV	RESULT_MID,ARG2_MID
+	MOV	ARG1_MID,RESULT_MID
+     ENDIF
+	MOV	ARG2_LSB,ARG1_LSB     ; Exchange LSBs
+	MOV	RESULT_LSB,ARG2_LSB
+	MOV	ARG1_LSB,RESULT_LSB
+	XOR	HELP,2(SP)	      ; Correct sign of result
+	JMP	FA3		      ;
+
+; |argument 1| = |argument 2|: Result is zero if subtraction
+
+FA2	TST	HELP		      ; Check operation: 0 = ADD
+	JNZ	RES0		      ; If subtraction: result = 0
+
+; The exponent of the result is built: ARG1exp - ARG2exp = COUNTER
+
+FA3	CLR	ARG1_LSB	      ; Clear least LSB
+	MOV	RESULT_MSB,COUNTER    ; Store the difference of the
+	SWPB	COUNTER 	      ; Exponents in COUNTER
+	MOV.B	COUNTER,3(SP)	      ; Save exponent of result
+	SWPB	ARG2_MSB	      ;
+	SUB.B	ARG2_MSB,COUNTER      ; To lower byte, build difference
+	SWPB	ARG2_MSB	      ; and back again to higher byte
+	JZ	FA6		      ; If exponents are equal
+				      ; then start operation
+
+; If the difference of the exponents of the arguments (stored in COUNTER)
+; is greater than ML - greater than the number of bits in the mantissa -
+; it is the same as an addition or subtraction with zero. No
+; operation is made in this case.
+; Otherwise the mantissa of the smaller argument (ARG2) is shifted right
+; until the exponent of the smaller argument equals the exponent of
+; the greater argument (RESULT).
+; ARG1_LSB.15 is used to store the LSB-1. It is needed for rounding
+;
+	CMP	#ML+1,COUNTER	; If difference of the exponents > ML
+	JHS	DDRNZ		; then result is the value in ARG1
+FA7	CLRC			;
+	RRC.B	ARG2_MSB	; Rotate right ARG2 until
+     IF DOUBLE=1
+	RRC	ARG2_MID	; the exponents are equal
+     ENDIF
+	RRC	ARG2_LSB	;
+	RRC	ARG1_LSB	; Save the LSB-1 of ARG2_LSB
+	DEC	COUNTER 	; into the  MSB of ARG1_LSB
+	JNZ	FA7		;
+
+; Exponents are equal: we are ready for the addition or subtraction
+
+FA6	TST	HELP		; HELP contains operation bit
+	JZ	FA8		; Jump if addition (bit = 0)
+;
+; Subtraction with rounding.
+;
+	BIT	#8000h,ARG1_LSB       ; 'least' LSB of ARG2_LSB
+	ADC	ARG2_LSB	      ; Rounding in case of subtraction
+     IF DOUBLE=1
+	ADC	ARG2_MID	      ;
+     ENDIF
+	ADC	ARG2_MSB	      ; No overflow possible here
+	SUB	ARG2_LSB,RESULT_LSB   ; Subtraction ARG1 - ARG2
+     IF DOUBLE=1
+	SUBC	ARG2_MID,RESULT_MID
+     ENDIF
+	SUBC.B	ARG2_MSB,RESULT_MSB
+
+FA10	TST.B	RESULT_MSB	; If hidden bit is set: finished
+	JN	DDRNZ		; else shift left result until MSB = 1
+	RLC	ARG1_LSB	; Stored LSB-1 of ARG2_LSB to Carry
+	RLC	RESULT_LSB	; corrects 1st rounding by 1 bit
+	CLR	ARG1_LSB	; Clear the LSB-1 info, it
+     IF DOUBLE=1                ; is only needed for the first shift
+	RLC	RESULT_MID	; the following shifts always shift
+     ENDIF                      ; a zero into the register
+	RLC.B	RESULT_MSB
+	DEC.B	3(SP)		; Decrement exponent of result:
+	JHS	FA10		; Exponent >= 0: go on
+	JMP	DBL_UNDERFLOW	; Underflow: exponent 00 -> FF
+;
+; Addition with rounding
+;
+FA8	ADD	ARG2_LSB,RESULT_LSB   ; Addition
+     IF DOUBLE=1
+	ADDC	ARG2_MID,RESULT_MID
+     ENDIF
+	ADDC.B	ARG2_MSB,RESULT_MSB
+	JNC	FA11		      ; Jump if no mantissa overflow
+	RRC.B	RESULT_MSB	      ; Shift right mantissa one bit
+     IF DOUBLE=1
+	RRC	RESULT_MID
+     ENDIF
+	RRC	RESULT_LSB
+	RRC	ARG1_LSB	      ; Save the LSB-1
+	INC.B	3(SP)		      ; Increment exponent of result
+	JC	DBL_OVERFLOW
+
+; round if necessary in case of addition
+
+FA11	RLC	ARG1_LSB	; Shift stored LSB-1 to carry
+	JMP	NORMLZ		; To common normalize part
+;=============================================================================
+; Floating Point Multiplication       Result on TOS = @RPRES x @RPARG
+
+FLT_MUL CALL	#INIMD		; Read arguments, zero test, sign prep.
+;	MOV.B	HELP,2(SP)	; Sign of result in HELP.7
+	BIT	#3,COUNTER	; LSBs contain zero test results
+	JNZ	EXIT		; Result = 0 if one argument is zero
+;
+; Calculate the exponent of the result by adding the exponents of
+; argument 1 and argument 2. Test for overflow and underflow
+
+	MOV	ARG1_MSB,HELP	; Fetch exponent of argument 1
+	BIC	#00FFh,HELP	; Avoid influence of mantissa
+	ADD	ARG2_MSB,HELP	; argument 1 + argument 2 -> HELP
+	JC	FM1		;
+	SUB	#8000h,HELP	; Toggle sign bit of exponent
+	JC	FM2		; Jump if no borrow
+	JMP	DBL_UNDERFLOW	; Underflow: result = 0
+FM1	SUB	#8000h,HELP	; Toggle sign bit of exponent
+	JC	DBL_OVERFLOW	; Jump if no borrow
+FM2	SWPB	HELP		; Exponent to low byte
+	MOV.B	HELP,3(SP)	; Save exponent of result
+;
+; Multiplication loop for the mantissa: different for hardware multiplier
+; and software multiplication
+;
+	BIS.B	#80h,ARG2_MSB	; Set hidden bit in ARG2
+	BIS.B	#80h,ARG1_MSB	; Set hidden bit in ARG1
+
+     IF HW_MPY=0
+;
+; Software multiplication loop:
+;
+	MOV.B	#ML,COUNTER	; Mantissa length to counter
+FM4	CLRC			; Reset CARRY for the next command
+	RRC.B	ARG2_MSB	; Shift LSB of ARG2 into Carry
+     IF DOUBLE=1
+	RRC	ARG2_MID
+     ENDIF
+        RRC     ARG2_LSB              ; LSB to Carry
+	JNC	FM3		      ; Bit = 0: no addition
+	ADD	ARG1_LSB,RESULT_LSB   ; Add only if Carry = 1
+     IF DOUBLE=1
+	ADDC	ARG1_MID,RESULT_MID   ; RESULT = RESULT + ARG1
+     ENDIF
+	ADDC	ARG1_MSB,RESULT_MSB
+FM3	RRC	RESULT_MSB	      ; CARRY is always zero here
+     IF DOUBLE=1
+	RRC	RESULT_MID	      ; Shift right 1 Bit RESULT
+     ENDIF
+	RRC	RESULT_LSB
+        RRC     HELP                  ; Save the LSB-1/LSB-2 of RESULT
+	DEC	COUNTER 	      ; if multiplication isn't finished
+	JNZ	FM4		      ; Continue loop
+     ELSE                             ; End of software multiplication loop
+;
+; Hardware Multiplication sequences:
+;
+;			       31		 0
+;			      +----+----+----+----+
+;			      |    mid1 x lsb2	  |
+;			      +----+----+----+----+
+;			      +----+----+----+----+
+;			      |    lsb1 x mid2	  |
+;		     47       +----+----+----+----+
+;		    +----+----+----+----+
+;		    | 00 | msb1 x lsb2	|
+;		    +----+----+----+----+
+;		    +----+----+----+----+
+;		    | 00 | lsb1 x msb2	|
+;		    +----+----+----+----+
+;		    +----+----+----+----+
+;		    |	 mid1 x mid2	|
+;	   63	    +----+----+----+----+
+;	  +----+----+----+----+
+;	  | 00 | msb1 x mid2  |
+;	  +----+----+----+----+
+;	  +----+----+----+----+
+;	  | 00 | mid1 x msb2  |
+;	  +----+----+----+----+
+;	  +----+----+
+;	  |msb1xmsb2|
+;	  +----+----+
+; ----------------------------------------------------
+;	  +----+----+----+----+----+----+
+;	  |   MSB   |	MID   |   LSB	| RESULT_xxx
+;	  +----+----+----+----+----+----+
+;
+     IF DOUBLE = 1                      ; .DOUBLE MPY sequence
+	MPYF	ARG2_LSB,ARG1_MID	;	      XXXX XXXX
+	MACF	ARG1_LSB,ARG2_MID	;	    c XXXX XXXX
+	ADD	&ResHi,RESULT_LSB	;
+	ADDC	&SumExt,RESULT_MID	;
+	MPYF	ARG1_MSB,ARG2_LSB	;	 00XX XXXX
+	MACF	ARG1_LSB,ARG2_MSB	;	 0XXX XXXX
+	MACF	ARG1_MID,ARG2_MID	;      c XXXX XXXX
+	ADD	&ResLo,RESULT_LSB	;
+	ADDC	&ResHi,RESULT_MID	;
+	ADDC	&SumExt,RESULT_MSB	;
+	MPYF	ARG1_MSB,ARG2_MID	;   00XX XXXX
+	MACF	ARG2_MSB,ARG1_MID	;   0XXX XXXX
+	ADD	&ResLo,RESULT_MID	;
+	ADDC	&ResHi,RESULT_MSB	;
+	MPYF	ARG1_MSB,ARG2_MSB     ;0000 XXXX
+	ADD	&ResLo,RESULT_MSB	;    MSB  MID  LSB  ---
+;
+     ELSE                               ; .FLOAT MPY sequence
+;
+;		     31 	       0
+;		    +----+----+----+----+
+;		    |	 lsb1 x lsb2	|
+;	   47	    +----+----+----+----+
+;	  +----+----+----+----+
+;	  | 00 | lsb1 x msb2  |
+;	  +----+----+----+----+
+;	  +----+----+----+----+
+;	  | 00 | msb1 x lsb2  |
+;	  +----+----+----+----+
+;	  +----+----+
+;	  |msb1xmsb2|
+;	  +----+----+
+; ------------------------------------------
+;	  +----+----+----+----+
+;	  |   MSB   |	LSB   | RESULT_xxx
+;	  +----+----+----+----+
+;
+; NOTE: The  MPY   ARG1_LSB,ARG2_MSB  is replaced by a
+;	     MOV   ARG2_MSB,&0138h    due to speed reasons
+;
+	MPYF	ARG1_LSB,ARG2_LSB	;	      XXXX XXXX
+	MOV	&ResHi,RESULT_LSB	;
+	MOV	ARG2_MSB,&0138h 	;!!	 00XX XXXX
+	MACF	ARG2_LSB,ARG1_MSB	;	 0XXX XXXX
+	ADD	&ResLo,RESULT_LSB	;
+	ADDC	&ResHi,RESULT_MSB	;
+	MPYF	ARG1_MSB,ARG2_MSB	;   0000 XXXX
+	ADD	&ResLo,RESULT_MSB	;	  MSB  LSB  ---
+     ENDIF
+;
+; The hardware multiplier result is located falsely:
+; Shift right result 8 bits to get FPP mantissa format (shown for .DOUBLE):
+; .FLOAT   1234 5678	  -> 0012 3456 xx__
+; .DOUBLE  1234 5678 9ABC -> 0012 3456 789A xx__   (xx in HELP for rounding)
+;
+	SWPB	RESULT_LSB		; 9ABC -> BC9A
+	MOV	RESULT_LSB,HELP 	; BC9A (contains LSB-1, LSB-2)
+	MOV.B	RESULT_LSB,RESULT_LSB	; 009A
+     IF DOUBLE = 1
+	MOV.B	RESULT_MID,COUNTER	; 0078 -> COUNTER
+	SWPB	COUNTER 		; 7800
+	ADD	COUNTER,RESULT_LSB	; 789A -> RESULT_LSB
+	SWPB	RESULT_MID		; 7856
+	MOV.B	RESULT_MID,RESULT_MID	; 0056
+	MOV.B	RESULT_MSB,COUNTER	; 0034 -> COUNTER
+	SWPB	COUNTER 		; 3400
+	ADD	COUNTER,RESULT_MID	; 3456 -> RESULT_MID
+     ELSE
+	MOV.B	RESULT_MSB,COUNTER	;
+	SWPB	COUNTER 		;
+	ADD	COUNTER,RESULT_LSB	;
+     ENDIF
+	SWPB	RESULT_MSB		; 3412
+	MOV.B	RESULT_MSB,RESULT_MSB	; 0012 -> RESULT_MSB
+     ENDIF                              ; End of hardware MPY sequence
+;
+; Common completion part:
+; Result in RESULT: 40 0000 to FF FFFE (40 0000 0000 to FF FFFF FFFE
+; Normalization is made to get MSB = 1 and rounding with LSB-1
+;
+	TST.B	RESULT_MSB	; If hidden Bit is not set
+	JGE	FM5		; then jump
+	INC.B	3(SP)		; New RESULT-exponent: hidden bit = 1
+	JNC	FM6
+	JMP	DBL_OVERFLOW	; Exponent-overflow (FF to 00)
+FM5	RLC	HELP		; LSB-1 of RESULT to carry
+	RLC	RESULT_LSB	; to format the mantissa
+     IF DOUBLE=1
+	RLC	RESULT_MID
+     ENDIF
+	RLC.B	RESULT_MSB
+
+; round with LSB-1 resp. LSB-2
+
+FM6	RLC	HELP		; Next LSB-1 to CARRY
+	JMP	NORMLZ		; Go to common completion part
+;=============================================================================
+; Floating Point Division       Result on TOS = @RPRES/@RPARG
+
+; Check if dividend is zero: result is zero
+; Check if divisor  is zero: result is signed max. number (overflow error)
+
+FLT_DIV CALL	#INIMD		; Read arguments, zero test, sign prep.
+;	MOV.B	HELP,2(SP)	; Sign of result in HELP.7
+	BIT	#1,COUNTER	; If argument1 is zero:
+	JNZ	EXIT		; Result is zero
+	BIT	#2,COUNTER	; If argument2 is zero:
+	JNZ	DIV_BY_ZERO	; signed overflow
+
+; Calculate the exponent of the result by subtraction of the exponents
+; of argument1 and argument2
+
+	MOV	ARG1_MSB,HELP	; Fetch exponent of argument 1
+	BIS	#0FFh,HELP	; Avoid influence from mantissa
+	SUB	ARG2_MSB,HELP	; argument 1 - argument 2 -> HELP
+	JC	FD1		;
+	ADD	#8000h,HELP	; Toggle sign bit of exponent
+	JC	FD2		;
+	JMP	DBL_UNDERFLOW	; Underflow: result = 0
+FD1	ADD	#8000h,HELP	; Toggle sign bit of exponent
+	JC	DBL_OVERFLOW	; Overflow: largest signed number
+FD2	SWPB	HELP		;
+	MOV.B	HELP,3(SP)	; Save exponent of result
+
+; Division-loop for mantissa calculation
+;
+	BIS.B	#80h,ARG2_MSB	      ; Set hidden bit argument 2
+	BIS.B	#80h,ARG1_MSB	      ; Set hidden bit argument 2
+	MOV.B	#ML,COUNTER	      ; Mantissa length to COUNTER
+
+FD4	SUB	ARG2_LSB,ARG1_LSB     ; ARG1 - ARG2
+     IF DOUBLE=1
+	SUBC	ARG2_MID,ARG1_MID     ;
+     ENDIF
+	SUBC	ARG2_MSB,ARG1_MSB     ;
+	JC	FD3		      ; ARG1 >= ARG2
+	ADD	ARG2_LSB,ARG1_LSB     ; ARG1 < ARG2: restore ARG1
+     IF DOUBLE=1
+	ADDC	ARG2_MID,ARG1_MID     ;
+     ENDIF
+	ADDC	ARG2_MSB,ARG1_MSB     ;
+	CLRC			      ;
+FD3	RLC	RESULT_LSB	      ; Carry to result
+     IF DOUBLE=1
+	RLC	RESULT_MID
+     ENDIF
+	RLC	RESULT_MSB
+	RLA	ARG1_LSB	      ;
+     IF DOUBLE=1
+	RLC	ARG1_MID	      ;
+     ENDIF
+	RLC	ARG1_MSB	      ;
+	DEC.B	COUNTER 	      ; If division is not finished:
+	JNZ	FD4		      ; continue loop
+
+	TST.B	RESULT_MSB	      ; Hidden bit set (normalized)?
+	JN	FD5		      ; Yes
+	INC.B	COUNTER 	      ; No, go through loop once more
+	DEC.B	3(SP)		      ; Correct exponent
+	JHS	FD4		      ;
+	JMP	DBL_UNDERFLOW	      ; Underflow: result = 0
+;
+; Result in RESULT: 80 0000 to FF FFFE (80 0000 0000 to FF FFFF FFFE)
+; Rounding is made with LSB-1
+;
+FD5	SUBC	ARG2_LSB,ARG1_LSB     ; Calculate LSB-1
+     IF DOUBLE=1
+	SUBC	ARG2_MID,ARG1_MID     ;
+     ENDIF
+	SUBC	ARG2_MSB,ARG1_MSB     ; Rounding info in Carry
+;==============================================================================
+; Common completion part: Mantissa in RESULT_xxx
+;			Sign	 in 2(SP) MSB	(hidden bit)
+;			Exponent in 3(SP)
+;			LSB-1	 in Carry for rounding
+;
+; Rounding info in carry, no error, sign and exponent get inserted
+;
+NORMLZ	ADC	RESULT_LSB	      ; Round mantissa with LSB-1
+     IF DOUBLE=1
+	ADC	RESULT_MID
+     ENDIF
+	ADC.B	RESULT_MSB
+	ADC.B	3(SP)		      ; Round exponent with Carry
+	JC	DBL_OVERFLOW	      ; Exponent overflow 0FFh to 00h
+;
+; No rounding, no error, sign and exponent get inserted
+;
+DDRNZ	BIC.B	#80h,RESULT_MSB       ; Clear hidden Bit (and higher byte)
+	BIS	2(SP),RESULT_MSB      ; Insert exponent and sign bit
+;
+; All done, result is placed on top of stack (TOS)
+;
+EXIT	CLR	HELP		      ; N=0, no error
+EXITE	MOV	RESULT_MSB,2(SP)      ; Result (RESULT) to Stack
+     IF DOUBLE=1
+	MOV	RESULT_MID,4(SP)      ;
+	MOV	RESULT_LSB,6(SP)      ;
+     ELSE
+	MOV	RESULT_LSB,4(SP)      ;
+     ENDIF
+;
+; Termination subroutine: error code in HELP (0 = no error)
+; Subroutine can be used by user written FP subroutines
+;
+FLT_END MOV	SP,RPRES	      ; Result pointer to result
+	ADD	#2,RPRES	      ; Correction (SP points to return addr.)
+	MOV	RPRES,RPARG	      ; Argument pointer to result
+	BIC	#FN+FZ+FC,SR	      ; Clear N,Z and C in SR
+	BIS	HELP,SR 	      ; Set SR according to error status
+	RET			      ; Stored in HELP
+;==============================================================================
+; Floating Point Error Handling: underflow, overflow, division by zero
+;
+;  +--------------------+-------------------+------------------------+
+;  | Error		|    Statusregister |	 Result 	     |
+;  +--------------------+-------------------+------------------------+
+;  | No error		|    N=0, C=x, Z=x  |	 xxxx xxxx xxxx      |
+;  | Overflow positive	|    N=1, C=1, Z=1  |	 FF7F FFFF FFFF      |
+;  | Overflow negative	|    N=1, C=1, Z=0  |	 FFFF FFFF FFFF      |
+;  | Underflow		|    N=1, C=0, Z=0  |	 0000 0000 0000      |
+;  | Division by zero	|    N=1, C=0, Z=1  |	 FF7F FFFF FFFF or   |
+;  |			|		    |	 FFFF FFFF FFFF      |
+;  +--------------------+-------------------+------------------------+
+;
+DBL_UNDERFLOW			; Underflow: Result = 0
+     IF SW_UFLOW=1              ; Error only if SW_UFLOW = 1
+	MOV	#FN,HELP	; Error code N=1, C=0, Z=0
+	JMP	RES01
+     ENDIF
+RES0	CLR	HELP		; Result is 0: N = 0 (No error)
+RES01	CLR	RESULT_MSB	; Errorfree zero result
+     IF DOUBLE=1
+	CLR	RESULT_MID
+     ENDIF
+	CLR	RESULT_LSB
+	JMP	EXITE		; To normal completion
+
+DBL_OVERFLOW			; Overflow: Insert largest signed number
+	MOV	#FN+FC,HELP	; Error code N=1, C=1, Z=Sign
+	TST.B	2(SP)		; Sign of result is stored here
+	JN	L$1		; Neg. sign: Z=0
+	BIS	#FZ,HELP	; Pos. sign: Z=1
+L$1	MOV	#0FF7Fh,RESULT_MSB
+	BIS	2(SP),RESULT_MSB      ; Insert sign
+     IF DOUBLE=1
+	MOV	#0FFFFh,RESULT_MID    ;
+     ENDIF
+	MOV	#0FFFFh,RESULT_LSB    ;
+	JMP	EXITE		      ;
+
+DIV_BY_ZERO                  ; Division by 0: Insert largest signed number
+        MOV     #FN+FZ,HELP  ; Error code N=1, C=0, Z=1
+        JMP     L$1          ; Result like overflow
+
+;=============================================================================
+; Floating Point Comparison
+;
+;  Call of the Comparison:
+;
+;     MOV     #ARG1,RPRES     ; Pointer to Argument 1 MSBs
+;     MOV     #ARG2,RPARG     ; Pointer to Argument 2 MSBs
+;     CALL    #FLT_CMP	      ; Comparison call
+;     JEQ     EQUAL	      ; If arg1 = arg2
+;     JHS     A1_GT_A2	      ; If arg1 > arg2
+;     ...     ...	      ; If arg1 < arg2
+;
+;  The result of the compare is written to the status register SR and HELP
+; RPARG and RPRES point with SP to actual result area (normal return)
+;
+;  +--------------------------+------------------------------+
+;  | Condition		      |    Statusregister	     |
+;  +--------------------------+------------------------------+
+;  | Argument 1 =  Argument 2 | ZERO = 1, CARRY = 1, NEG = 0 |
+;  | Argument 1 <  Argument 2 | ZERO = 0, CARRY = 0, NEG = 0 |
+;  | Argument 1 >  Argument 2 | ZERO = 0, CARRY = 1, NEG = 0 |
+;  +--------------------------+------------------------------+
+;
+FLT_CMP EQU     $
+        IF     DOUBLE=1
+        MOV     @R5+,ARG2_MSB           ; Copy argument 2 to regs
+        MOV     @R5+,ARG2_MID
+        MOV     @R5+,ARG2_LSB
+        MOV     @R11+,ARG1_MSB          ; Copy argument 1 to regs
+        MOV     @R11+,ARG1_MID
+        MOV     @R11+,ARG1_LSB
+        ELSE
+        MOV     @R5+,ARG2_MSB           ; Copy argument 2 to regs
+        MOV     @R5+,ARG2_LSB
+        MOV     @R9+,ARG1_MSB           ; Copy argument 1 to regs
+        MOV     @R9+,ARG1_LSB
+        ENDIF
+;
+	TST.B	ARG2_MSB		; Arg1, Arg2: check signs
+	JN	FC2			; Arg2 = neg.
+	TST.B	ARG1_MSB		; Arg2 = pos.
+	JN	A1LTA2			; Arg2 = +, Arg1 = -: A1 < A2
+	CMP	ARG2_MSB,ARG1_MSB	; Arg1 = +, Arg2 = +
+	JNE	FC4			; Check values
+        IF     DOUBLE=1
+	CMP	ARG2_MID,ARG1_MID
+	JNE	FC4
+        ENDIF
+	CMP	ARG2_LSB,ARG1_LSB
+	JEQ	A1EQA2			; Arg1 = Arg2
+FC4	JLO	A1LTA2			; Arg1 < Arg2
+A1GTA2	MOV	#FC,HELP		; Carry = 1, Zero = 0
+	JMP	FLT_END 		; To completion part
+;
+FC2	TST.B	ARG1_MSB		; Arg2 = -
+	JGE	A1GTA2			; Arg1 = +: A1 > A2
+	CMP	ARG2_MSB,ARG1_MSB	; Arg1 = -, Arg2 = -
+	JNE	FC5			; Check values
+        IF     DOUBLE=1
+	CMP	ARG2_MID,ARG1_MID
+	JNE	FC5
+        ENDIF
+	CMP	ARG2_LSB,ARG1_LSB
+	JEQ	A1EQA2			; Arg1 = Arg2
+FC5	JLO	A1GTA2			; Arg1 > Arg2
+A1LTA2	CLR	HELP			; Carry = 0, Zero = 0
+	JMP	FLT_END 		; Modify SR with HELP
+A1EQA2	MOV	#FZ+FC,HELP		; Arg1 = Arg2: Z = C = 1
+	JMP	FLT_END 		; To completion part
+;=============================================================================
+; Floating Point Subroutines
+;
+; INIMD creates the sign of the result for MPY and DIV in HELP.7
+; INIAS is used too
+
+INIMD   EQU     $
+        IF      DOUBLE=1
+        MOV.B   @R11,HELP       ; Calculate sign of result:
+        ELSE
+        MOV.B   @R9,HELP
+        ENDIF
+        XOR.B   @R5,HELP        ; Sign arg2 .xor. sign arg1
+	AND.B	#080h,HELP	; Leave only the calculated sign
+
+; INIAS  loads the arguments to ARG1_xxx and ARG2_xxx
+;      clears the variables RESULT_xxx
+;      tests the arguments to zero and stores the result in
+;      COUNTER - if argument1 is zero: COUNTER.0 is 1
+;		 if argument2 is zero: COUNTER.1 is 1
+;		 else COUNTER is 0
+
+INIAS   EQU     $
+        IF      DOUBLE=1
+        MOV     @R5+,ARG2_MSB   ; Copy argument 2 to regs
+        MOV     @R5+,ARG2_MID
+        MOV     @R5,ARG2_LSB
+        MOV     @R11+,ARG1_MSB  ; Copy argument 1 to regs
+        MOV     @R11+,ARG1_MID
+        MOV     @R11,ARG1_LSB
+        ELSE
+        MOV     @R5+,ARG2_MSB   ; Copy argument 2 to regs
+        MOV     @R5,ARG2_LSB
+        MOV     @R9+,ARG1_MSB   ; Copy argument 1 to regs
+        MOV     @R9,ARG1_LSB
+        ENDIF
+        MOV.B   HELP,4(SP)      ; Insert sign
+	CLR	RESULT_MSB	; Clear RESULT
+     IF DOUBLE=1
+	CLR	RESULT_MID	;
+     ENDIF
+	CLR	RESULT_LSB	;
+;
+	CLR	COUNTER 	; Clear COUNTER
+	TST	ARG1_MSB	; If ARG1 = 0:
+	JNZ	FNZ1		; set LSB of COUNTER
+     IF DOUBLE=1
+	TST	ARG1_MID	;
+	JNZ	FNZ1		;
+     ENDIF
+	TST	ARG1_LSB	;
+	JNZ	FNZ1		;
+	BIS	#1,COUNTER	; ARG1 = 0
+;
+FNZ1	TST	ARG2_MSB	; If ARG2 = 0:
+	JNZ	FNZ2		; set LSB+1 of COUNTER
+     IF DOUBLE=1
+	TST	ARG2_MID	;
+	JNZ	FNZ2		;
+     ENDIF
+	TST	ARG2_LSB	;
+	JNZ	FNZ2		;
+	BIS	#2,COUNTER	; ARG2 = 0
+FNZ2	RET			; Zero info in COUNTER, sign in HELP
+;
+;  END OF THE FLOATING POINT BASIC ARITHMETIC OPERATIONS
+

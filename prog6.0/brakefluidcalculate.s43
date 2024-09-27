@@ -1,0 +1,259 @@
+;***************************************************************
+;     煞車由計算
+;*******************************************************************
+#define     brake         (BIT2)
+R1_K			equ		366
+R3_K			equ		100
+brake_default			equ		3000                  ;flash &01080h brake_default
+R2_limit_up			equ		1                    ;(R1*RX)/(R1-RX)  (R1-RX)> = 10 max 500*507/30=9250   不可大於 65535
+
+
+;********************************************************************
+
+;***************************************************
+;   brakefluid_test   ADC6   求rx
+;***************************************************
+brakefluid_test_R1_R2
+             CMP.B      #01,testmode_y
+             JEQ        ADC6_start;brake_testmode
+
+            MOV     #32,TESTCOUNT
+
+            MOV     #0,Y_ADDRESS
+TEST_L4_0_0
+              MOV     #20,TESTCOUNT_1
+TEST_L4_0_1
+              ;BIS.B     #brake,&P5OUT
+              CALL    #delay7
+             ; BIC.B     #brake,&P5OUT
+              CALL    #delay7
+
+             dec     TESTCOUNT_1                      ; Decrement R15
+             jnz     TEST_L4_0_1
+
+
+
+             call     #DIS_TEST
+
+brake_testmode
+             ADD          #4,Y_ADDRESS		;輸入address上下(0-63)
+
+             dec     TESTCOUNT                      ; Decrement R15
+             jnz     TEST_L4_0_0
+
+
+ADC6_start
+              MOV     #16,TESTCOUNT    
+             MOV     #0,ADC6_stack
+
+ADC6_ADD_8
+             call      #adc_6
+testIFG_12   bit     #BIT0,&ADC12IFG         ; Conversion done?
+            jnz      testIFG_12              ; No, test again
+            mov     ADC_,ADC6
+           ADD     ADC6,ADC6_stack
+           dec     TESTCOUNT 
+            jnz     ADC6_ADD_8
+
+             CLRC
+             RRC        ADC6_stack
+             CLRC
+             RRC        ADC6_stack
+             CLRC
+             RRC       ADC6_stack
+             CLRC
+             RRC        ADC6_stack             
+             MOV        ADC6_stack,ADC6
+           CLRC
+;*****************************************************
+;3.3v*4095*100k/2.55v=x  x/ADC N - 100K   CALCULATE 煞車油電阻 _VAL   求 RX
+;**************************************************
+            cmp         #00h,ADC6
+            JNZ         ADC6_NO_ZERO
+            MOV         #01H,ADC6
+ADC6_NO_ZERO
+
+          MOV    #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV    #00h,BIN_MID  ;
+         MOV   ADC6,BIN_LSB  ; Load LSBs
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+          MOV    #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV    #00h,BIN_MID  ;
+         MOV   #R3_K,BIN_LSB  ; Load LSBs
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp3msb
+         POP  fp3mid
+         POP  fp3lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#e,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_DIV     ; Compute and load pointers with res.address
+     MOV	#fp3msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_SUB     ; Compute and load pointers with res.address
+
+;	....	  ........     ; Continue until final result is calculated
+	CALL	  #CNV_FP_BIN  ; Convert final FP result to BCD
+;	JN	  CNVERR       ; FP number too big for BCD buffer
+	POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB       ; BCD digits LSD+3 to LSD
+;			       ; Stack is corrected by POPs
+;	CALL	  #FLT_REC     ; Restore registers
+;	....	  ........     ; Continue with program
+;       CALL	  #FLT_END
+          MOV        BIN_MSB,rx_msb
+          MOV        BIN_MID,rx_mid
+          MOV        BIN_LSB,rx_lsb
+
+;*****************************************************
+; (R1*RX)/(R1-RX) 求R2
+;**************************************************
+         cmp         #R1_K,rx_lsb
+         JL          R1_K_PASS
+         MOV          #R1_K,rx_lsb
+R1_K_PASS
+         MOV          #R1_K,R4
+         SUB         rx_lsb,R4
+         cmp            #R2_limit_up,R4
+         JGE            R1_K_rx_1_lsb_JGE_50
+         MOV         #R2_limit_up,R4
+
+R1_K_rx_1_lsb_JGE_50
+          MOV         R4,R1_K_rx_1_lsb
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   #R1_K,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV    rx_lsb,BIN_LSB  ; Load LSBs                                     1056
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+        MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   R1_K_rx_1_lsb,BIN_LSB  ; Load LSBs R1_K_rx_1_lsb
+         SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp3msb
+       POP  fp3mid
+         POP  fp3lsb
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_MUL     ; Compute and load pointers with res.address
+
+      MOV	#fp3msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+
+        MOV        BIN_MID,r2_mid
+        MOV        BIN_LSB,r2_lsb
+
+            MOV       r2_mid,BIN_MID       ; BCD digits MSD-4 to LSD+4
+            MOV       r2_lsb,BIN_LSB
+
+	SUB	#(ML/8)+1,SP ; Allocate stack for result
+	CALL  #CNV_BIN        ; Call conversion routine
+	
+
+       CALL	  #CNV_FP_BCD  ; Convert final FP result to BCD
+       POP	  bcdmsd       ; BCD number MSDs and sign
+	POP	  bcdmid       ; BCD digits MSD-4 to LSD+4
+	POP	  bcdlsd
+
+            RET
+
+;*****************************************************
+; ( R2 FLASH - R2)/R2 FLASH *100%
+;**************************************************
+brakefluid_test_PERCEN
+
+         MOV       &01080H,r2_lsb_flash                                                        ;r2_k_flash
+         cmp       #0ffffh,r2_lsb_flash
+         jne        r2_lsb_flash_pass
+         MOV       #brake_default,r2_lsb_flash
+r2_lsb_flash_pass
+         MOV       r2_lsb_flash,R4
+         CMP       R4,r2_lsb
+         JLO         r2_lsb_PASS
+         MOV       r2_lsb_flash,r2_lsb
+
+r2_lsb_PASS
+
+         SUB         r2_lsb,R4
+          MOV         R4,r2_lsb_flash_r2_lsb
+
+           MOV   #00h,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00h,BIN_MID  ;
+        MOV   r2_lsb_flash_r2_lsb,BIN_LSB  ; Load LSBs
+;            CALL	#FLT_SAV     ; Save registers
+            SUB	#(ML/8)+1,SP ; Allocate stack for result
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp1msb
+        POP  fp1mid
+          POP  fp1lsb
+
+
+          MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   #80,BIN_LSB  ; Load LSBs                                     1056
+         SUB	#(ML/8)+1,SP
+        CALL  #CNV_BIN        ; Call conversion routine
+        POP  fp2msb
+         POP  fp2mid
+         POP  fp2lsb             ; Result on TOS (2 or 3 words FP number)
+
+
+        MOV   #00,BIN_MSB  ; Load MSBs of a signed 48 bit binary number
+         MOV   #00H,BIN_MID  ;
+         MOV   r2_lsb_flash,BIN_LSB  ; Load LSBs
+         SUB	#(ML/8)+1,SP
+         CALL  #CNV_BIN        ; Call conversion routine
+         POP  fp3msb
+       POP  fp3mid
+         POP  fp3lsb
+
+
+     SUB	#(ML/8)+1,SP ; Allocate stack for result
+     MOV	#fp1msb,RPRES  ; Load result pointer with VAL1 address MSB
+     MOV	#fp2msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+     CALL	#FLT_MUL     ; Compute and load pointers with res.address
+
+      MOV	#fp3msb,RPARG  ; Load argum. pointer with VAL2 address MSB
+      CALL	#FLT_DIV     ; Compute and load pointers with res.address
+
+
+        CALL	  #CNV_FP_BIN  ; Convert final FP result to BIN
+        POP	  BIN_MSB       ; BCD number MSDs and sign
+	POP	  BIN_MID       ; BCD digits MSD-4 to LSD+4
+	POP	  BIN_LSB
+        ; MOV        BIN_LSB,brakefluid_PERCEN
+         MOV        BIN_LSB,brakefluid_PERCEN_2
+
+          RET
